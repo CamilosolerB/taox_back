@@ -17,40 +17,60 @@ from app.infrastructure.config.products_dependencies import (
     get_update_product_use_case,
     get_delete_product_use_case
 )
+from app.core.middleware.auth_middleware import (
+    get_current_user,
+    require_admin
+)
 from app.domain.entities.product_model import Product
 
 router = APIRouter(prefix="/products", tags=["products"])
 
-@router.get("/", response_model=list[ProductDTO])
+@router.get("/", response_model=list[ProductDTO], dependencies=[Depends(get_current_user)])
 def get_all_products(
-    get_all_products_use_case: GetAllProductsUseCase = Depends(get_all_products_use_case)
+    get_all_products_use_case: GetAllProductsUseCase = Depends(get_all_products_use_case),
+    payload: dict = Depends(get_current_user)
 ):
+    """
+    Lista todos los productos (requiere autenticación)
+    """
     products = get_all_products_use_case.execute()
     return [ProductDTO.from_entity(product) for product in products]
 
-@router.get("/by-id/{product_id}", response_model=ProductDTO)
+@router.get("/by-id/{product_id}", response_model=ProductDTO, dependencies=[Depends(get_current_user)])
 def get_product_by_id(
     product_id: str,
-    get_product_by_id_use_case: GetProductByIdUseCase = Depends(get_product_by_id_use_case)
+    get_product_by_id_use_case: GetProductByIdUseCase = Depends(get_product_by_id_use_case),
+    payload: dict = Depends(get_current_user)
 ):
+    """
+    Obtiene un producto por ID (requiere autenticación)
+    """
     product = get_product_by_id_use_case.execute(product_id)
     if product is None:
         return {"error": "Product not found"}
     return ProductDTO.from_entity(product)
 
-@router.get("/by-company/{company_id}", response_model=list[ProductDTO])
+@router.get("/by-company/{company_id}", response_model=list[ProductDTO], dependencies=[Depends(get_current_user)])
 def get_products_by_company_id(
     company_id: UUID,
-    get_products_by_company_id_use_case: GetProductsByCompanyIdUseCase = Depends(get_products_by_company_id_use_case)
+    get_products_by_company_id_use_case: GetProductsByCompanyIdUseCase = Depends(get_products_by_company_id_use_case),
+    payload: dict = Depends(get_current_user)
 ):
+    """
+    Obtiene productos por company ID (requiere autenticación)
+    """
     products = get_products_by_company_id_use_case.execute(str(company_id))
     return [ProductDTO.from_entity(product) for product in products]
 
-@router.post("/", response_model=ProductDTO)
+@router.post("/", response_model=ProductDTO, dependencies=[Depends(require_admin)])
 def create_product(
     create_product_dto: CreateProductDTO,
-    create_product_use_case: CreateProductUseCase = Depends(get_create_product_use_case)
+    create_product_use_case: CreateProductUseCase = Depends(get_create_product_use_case),
+    payload: dict = Depends(require_admin)
 ):
+    """
+    Crea un nuevo producto (requiere rol de administrador)
+    """
     product = create_product_use_case.execute(Product(
         id_product=create_product_dto.id_product,
         name=create_product_dto.name,
@@ -65,20 +85,28 @@ def create_product(
     ))
     return ProductDTO.from_entity(product)
 
-@router.put("/{product_id}", response_model=ProductDTO)
+@router.put("/{product_id}", response_model=ProductDTO, dependencies=[Depends(require_admin)])
 def update_product(
     product_id: str,
     update_product_dto: UpdateProductDTO,
-    update_product_use_case: UpdateProductUseCase = Depends(get_update_product_use_case)
+    update_product_use_case: UpdateProductUseCase = Depends(get_update_product_use_case),
+    payload: dict = Depends(require_admin)
 ):
+    """
+    Actualiza un producto (requiere rol de administrador)
+    """
     product_data = update_product_dto.model_dump(exclude_unset=True)
     product = update_product_use_case.execute(product_id, product_data)
     return ProductDTO.from_entity(product)
 
-@router.delete("/{product_id}")
+@router.delete("/{product_id}", dependencies=[Depends(require_admin)])
 def delete_product(
     product_id: str,
-    delete_product_use_case: DeleteProductUseCase = Depends(get_delete_product_use_case)
+    delete_product_use_case: DeleteProductUseCase = Depends(get_delete_product_use_case),
+    payload: dict = Depends(require_admin)
 ):
+    """
+    Elimina un producto (requiere rol de administrador)
+    """
     delete_product_use_case.execute(product_id)
     return {"message": "Product deleted successfully"}

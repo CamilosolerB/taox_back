@@ -15,28 +15,46 @@ from app.infrastructure.config.companies_dependencies import (
     get_update_company_use_case,
     get_delete_company_use_case
 )
+from app.core.middleware.auth_middleware import (
+    get_current_user,
+    require_admin
+)
 from app.domain.entities.company_model import Company
 
 router = APIRouter(prefix="/companies", tags=["companies"])
 
-@router.get("/", response_model=list[CompanyDTO])
-def get_companies(get_companies_use_case: GetCompaniesUseCase = Depends(get_companies_use_case)):
+@router.get("/", response_model=list[CompanyDTO], dependencies=[Depends(get_current_user)])
+def get_companies(
+    get_companies_use_case: GetCompaniesUseCase = Depends(get_companies_use_case),
+    payload: dict = Depends(get_current_user)
+):
+    """
+    Lista todas las companies (requiere autenticación)
+    """
     companies = get_companies_use_case.execute()
     return [CompanyDTO.from_entity(company) for company in companies]
 
-@router.get("/{company_id}", response_model=CompanyDTO)
+@router.get("/{company_id}", response_model=CompanyDTO, dependencies=[Depends(get_current_user)])
 def get_company_by_id(
     company_id: UUID,
-    get_company_by_id_use_case: GetCompanyByIdUseCase = Depends(get_company_by_id_use_case)
+    get_company_by_id_use_case: GetCompanyByIdUseCase = Depends(get_company_by_id_use_case),
+    payload: dict = Depends(get_current_user)
 ):
+    """
+    Obtiene una company por ID (requiere autenticación)
+    """
     company = get_company_by_id_use_case.execute(str(company_id))
     return CompanyDTO.from_entity(company)
 
-@router.post("/", response_model=CompanyDTO)
+@router.post("/", response_model=CompanyDTO, dependencies=[Depends(require_admin)])
 def create_company(
     create_company_dto: CreateCompanyDTO,
-    create_company_use_case: CreateCompanyUseCase = Depends(get_create_company_use_case)
+    create_company_use_case: CreateCompanyUseCase = Depends(get_create_company_use_case),
+    payload: dict = Depends(require_admin)
 ):
+    """
+    Crea una nueva company (requiere rol de administrador)
+    """
     company = create_company_use_case.execute(Company(
         id_company=None,
         name=create_company_dto.name,
@@ -48,20 +66,28 @@ def create_company(
     ))
     return CompanyDTO.from_entity(company)
 
-@router.put("/{company_id}", response_model=CompanyDTO)
+@router.put("/{company_id}", response_model=CompanyDTO, dependencies=[Depends(require_admin)])
 def update_company(
     company_id: UUID,
     update_company_dto: UpdateCompanyDTO,
-    update_company_use_case: UpdateCompanyUseCase = Depends(get_update_company_use_case)
+    update_company_use_case: UpdateCompanyUseCase = Depends(get_update_company_use_case),
+    payload: dict = Depends(require_admin)
 ):
+    """
+    Actualiza una company (requiere rol de administrador)
+    """
     company_data = update_company_dto.model_dump(exclude_unset=True)
     company = update_company_use_case.execute(str(company_id), company_data)
     return CompanyDTO.from_entity(company)
 
-@router.delete("/{company_id}")
+@router.delete("/{company_id}", dependencies=[Depends(require_admin)])
 def delete_company(
     company_id: UUID,
-    delete_company_use_case: DeleteCompanyUseCase = Depends(get_delete_company_use_case)
+    delete_company_use_case: DeleteCompanyUseCase = Depends(get_delete_company_use_case),
+    payload: dict = Depends(require_admin)
 ):
+    """
+    Elimina una company (requiere rol de administrador)
+    """
     delete_company_use_case.execute(str(company_id))
     return {"message": "Company deleted successfully"}

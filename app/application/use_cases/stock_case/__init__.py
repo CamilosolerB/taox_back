@@ -1,0 +1,1 @@
+"""Stock use case module"""

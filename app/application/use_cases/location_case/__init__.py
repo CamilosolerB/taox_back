@@ -1,0 +1,1 @@
+"""Location use case module"""
