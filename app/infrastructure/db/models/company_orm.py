@@ -15,3 +15,8 @@ class Company(Base):
     is_active = Column(Boolean, default=True)
     users = relationship("User", back_populates="company")
     products = relationship("Product", back_populates="company")
+    clientes = relationship("ClientORM", back_populates="company")
+    proveedores = relationship("ProviderORM", back_populates="empresa")
+    ubicaciones = relationship("LocationORM", back_populates="empresa")
+    stock_ubicaciones = relationship("StockLocationORM", back_populates="empresa")
+    stock_almacenes = relationship("StockWarehouseORM", back_populates="empresa")

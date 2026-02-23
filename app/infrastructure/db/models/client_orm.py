@@ -1,14 +1,11 @@
-"""
-ORM Model para Cliente
-"""
 from sqlalchemy import Column, String, DateTime, Boolean, Float, ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from datetime import datetime
 from app.infrastructure.db.base import Base
 
 
 class ClientORM(Base):
-    """Modelo ORM para Cliente"""
     
     __tablename__ = "cliente"
     
@@ -21,10 +18,10 @@ class ClientORM(Base):
     ciudad = Column(String(100), nullable=False)
     tipo_agua = Column(String(50), nullable=False)
     cantidad_promedio_kg = Column(Float, nullable=False)
-    id_empresa = Column(String(36), ForeignKey("empresa.id_empresa"), nullable=False)
+    id_empresa = Column(PG_UUID(as_uuid=True), ForeignKey("companies.id_company"), nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
     # Relaciones
-    empresa = relationship("EmpresaORM", back_populates="clientes")
+    company = relationship("Company", back_populates="clientes")

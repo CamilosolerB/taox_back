@@ -16,3 +16,7 @@ class Product(Base):
     restorage = Column(String, nullable=False)
     company_id = Column(PG_UUID(as_uuid=True), ForeignKey("companies.id_company"), nullable=False)
     company = relationship("Company", back_populates="products")
+    product_proveedores = relationship("ProductProviderORM", back_populates="producto")
+    stock_ubicaciones = relationship("StockLocationORM", back_populates="producto")
+    stock_almacen = relationship("StockWarehouseORM", back_populates="producto")
+    stock_ubicaciones = relationship("StockLocationORM", back_populates="producto")
