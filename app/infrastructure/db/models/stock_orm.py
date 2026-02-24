@@ -33,5 +33,5 @@ class StockWarehouseORM(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
     # Relaciones
-    producto = relationship("ProductoORM", back_populates="stock_almacen")
+    producto = relationship("Product", back_populates="stock_almacen")
     empresa = relationship("Company", back_populates="stock_almacenes")

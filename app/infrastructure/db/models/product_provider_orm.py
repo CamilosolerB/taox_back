@@ -18,5 +18,5 @@ class ProductProviderORM(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
     # Relaciones
-    producto = relationship("Product", back_populates="proveedores")
+    producto = relationship("Product", back_populates="product_proveedores")
     proveedor = relationship("ProviderORM", back_populates="producto_proveedores")

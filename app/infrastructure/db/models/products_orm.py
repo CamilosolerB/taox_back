@@ -19,4 +19,3 @@ class Product(Base):
     product_proveedores = relationship("ProductProviderORM", back_populates="producto")
     stock_ubicaciones = relationship("StockLocationORM", back_populates="producto")
     stock_almacen = relationship("StockWarehouseORM", back_populates="producto")
-    stock_ubicaciones = relationship("StockLocationORM", back_populates="producto")

@@ -1,6 +1,6 @@
 # Estructura del Módulo de Autenticación
 
-```
+```bash
 app/
 ├── core/
 │   ├── security.py                    ← Funciones de hash y JWT
@@ -36,7 +36,7 @@ app/
 
 ## Flujo de Autenticación
 
-```
+```bash
 1. REGISTRO
    │
    ├─→ POST /auth/register
@@ -66,7 +66,7 @@ app/
 
 ## Características de Seguridad
 
-```
+```bash
 ┌─────────────────────────────────────────────────────────────┐
 │ CONTRASEÑAS                                                 │
 ├─────────────────────────────────────────────────────────────┤
@@ -124,7 +124,7 @@ app/
 
 ## Configuración Requerida (.env)
 
-```
+```bash
 JWT_SECRET_KEY=tu_secreto_muy_seguro_aqui_cambiar_en_produccion
 ADMIN_ROLE_ID=550e8400-e29b-41d4-a716-446655440000
 OBSERVER_ROLE_ID=550e8400-e29b-41d4-a716-446655440001
@@ -133,6 +133,7 @@ OBSERVER_ROLE_ID=550e8400-e29b-41d4-a716-446655440001
 ## Ejemplos de Uso
 
 ### Registrarse
+
 ```bash
 curl -X POST http://localhost:8000/auth/register \
   -H "Content-Type: application/json" \
@@ -146,6 +147,7 @@ curl -X POST http://localhost:8000/auth/register \
 ```
 
 ### Hacer login
+
 ```bash
 curl -X POST http://localhost:8000/auth/login \
   -H "Content-Type: application/json" \
@@ -156,12 +158,14 @@ curl -X POST http://localhost:8000/auth/login \
 ```
 
 ### Usar token en request protegido
+
 ```bash
 curl -X GET http://localhost:8000/users/ \
   -H "Authorization: Bearer <token_recibido>"
 ```
 
 ### Obtener info del usuario actual
+
 ```bash
 curl -X GET http://localhost:8000/auth/me \
   -H "Authorization: Bearer <token_recibido>"

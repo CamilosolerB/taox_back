@@ -22,7 +22,7 @@ class RegisterDTO(BaseModel):
 
 
 class LoginDTO(BaseModel):
-    email: EmailStr = Field(..., description="Email del usuario")
+    email: str = Field(..., description="Email del usuario")
     password: str = Field(..., description="Contraseña del usuario")
 
     class Config:

@@ -21,12 +21,17 @@ def hash_password(password: str) -> str:
     Hash una contraseña usando bcrypt.
     
     Args:
-        password: Contraseña en texto plano
+        password: Contraseña en texto plano (max 72 bytes)
         
     Returns:
         Contraseña hasheada con bcrypt
+        
+    Note:
+        Bcrypt tiene límite de 72 bytes. Se trunca automáticamente si es necesario.
     """
-    return pwd_context.hash(password)
+    # Truncar a 72 bytes como medida defensiva
+    password_truncated = password[:72]
+    return pwd_context.hash(password_truncated)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -39,8 +44,13 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         
     Returns:
         True si coinciden, False si no
+        
+    Note:
+        Trunca la contraseña a 72 bytes antes de verificar (límite de bcrypt)
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    # Truncar a 72 bytes como medida defensiva (consistente con hash_password)
+    password_truncated = plain_password[:72]
+    return pwd_context.verify(password_truncated, hashed_password)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

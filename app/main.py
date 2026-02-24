@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.infrastructure.adapters.into.http.users import router as users_router
 from app.infrastructure.adapters.into.http.roles import router as roles_router
 from app.infrastructure.adapters.into.http.companies import router as companies_router
@@ -11,6 +12,13 @@ from app.infrastructure.adapters.into.http.client import router as client_router
 from app.infrastructure.adapters.into.http.product_provider import router as product_provider_router
 
 app = FastAPI(title="TAOX API")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(auth_router)
 app.include_router(users_router)

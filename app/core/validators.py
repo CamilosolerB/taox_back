@@ -13,6 +13,7 @@ class PasswordValidator:
     """Validador de contraseñas"""
     
     MIN_LENGTH = 8
+    MAX_LENGTH = 72  # Límite de bcrypt
     REQUIRES_UPPERCASE = True
     REQUIRES_LOWERCASE = True
     REQUIRES_DIGIT = True
@@ -33,6 +34,9 @@ class PasswordValidator:
         """
         if len(password) < cls.MIN_LENGTH:
             return False, f"Password must be at least {cls.MIN_LENGTH} characters"
+        
+        if len(password) > cls.MAX_LENGTH:
+            return False, f"Password must not exceed {cls.MAX_LENGTH} characters (bcrypt limit)"
         
         if cls.REQUIRES_UPPERCASE and not any(c.isupper() for c in password):
             return False, "Password must contain at least one uppercase letter"
