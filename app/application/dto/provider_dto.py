@@ -46,3 +46,19 @@ class ProviderDTO(BaseModel):
     
     class Config:
         from_attributes = True
+    
+    @classmethod
+    def from_entity(cls, provider):
+        """Convierte entidad Provider a ProviderDTO"""
+        return cls(
+            cad_proveedor=provider.cad_proveedor,
+            nombre=provider.nombre,
+            contacto=provider.contacto,
+            direccion=provider.direccion,
+            telefono=provider.telefono,
+            celular=provider.celular,
+            web=provider.web,
+            correo=provider.correo,
+            company_id=provider.id_empresa,
+            is_active=provider.is_active
+        )

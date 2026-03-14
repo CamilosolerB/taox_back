@@ -25,7 +25,6 @@ class StockLocationDTO(BaseModel):
     id_ubicacion: int
     codigo_producto: str
     cantidad: int
-    company_id: UUID
     
     class Config:
         from_attributes = True
@@ -48,7 +47,6 @@ class StockWarehouseDTO(BaseModel):
     """DTO para respuesta de stock en almacén"""
     codigo_producto: str
     cantidad: int
-    company_id: UUID
     
     class Config:
         from_attributes = True

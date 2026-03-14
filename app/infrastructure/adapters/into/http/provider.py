@@ -34,7 +34,8 @@ def get_providers(
 ):
     """Obtiene todos los proveedores de una empresa"""
     logger.info(f"Obteniendo proveedores de empresa: {company_id}")
-    return get_providers_use_case.get_all(str(company_id))
+    providers = get_providers_use_case.get_all(str(company_id))
+    return [ProviderDTO.from_entity(provider) for provider in providers]
 
 
 @router.get("/{provider_id}", response_model=ProviderDTO)

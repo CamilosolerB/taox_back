@@ -45,10 +45,44 @@ class UpdateProviderUseCase:
     def __init__(self, provider_repository: ProviderRepository):
         self.provider_repository = provider_repository
     
-    def execute(self, provider_id: str, provider: Provider) -> Provider:
+    def execute(
+        self,
+        provider_id: str,
+        id_empresa: str,
+        nombre: str = None,
+        contacto: str = None,
+        direccion: str = None,
+        telefono: str = None,
+        celular: str = None,
+        web: str = None,
+        correo: str = None,
+        is_active: bool = None
+    ) -> Provider:
         """Actualiza un proveedor existente"""
         logger.info(f"Actualizando proveedor: {provider_id}")
-        updated_provider = self.provider_repository.update_provider(provider_id, provider)
+        
+        existing_provider = self.provider_repository.get_provider_by_id(provider_id, id_empresa)
+        if not existing_provider:
+            raise Exception(f"Provider with id {provider_id} not found")
+            
+        if nombre is not None:
+            existing_provider.nombre = nombre
+        if contacto is not None:
+            existing_provider.contacto = contacto
+        if direccion is not None:
+            existing_provider.direccion = direccion
+        if telefono is not None:
+            existing_provider.telefono = telefono
+        if celular is not None:
+            existing_provider.celular = celular
+        if web is not None:
+            existing_provider.web = web
+        if correo is not None:
+            existing_provider.correo = correo
+        if is_active is not None:
+            existing_provider.is_active = is_active
+            
+        updated_provider = self.provider_repository.update_provider(provider_id, existing_provider)
         if not updated_provider:
             logger.error(f"No se pudo actualizar proveedor: {provider_id}")
             raise Exception(f"Could not update provider {provider_id}")
