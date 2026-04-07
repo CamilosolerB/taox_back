@@ -14,6 +14,7 @@ from app.infrastructure.adapters.into.http.processes import router as processes_
 from app.infrastructure.adapters.into.http.product_movements import router as movements_router
 from app.infrastructure.adapters.into.http.chemical_stocks import router as stocks_router
 from app.infrastructure.adapters.into.http.stock_alerts import router as alerts_router
+from app.infrastructure.adapters.into.http.dashboard import router as dashboard_router
 
 app = FastAPI(title="TAOX API")
 app.add_middleware(
@@ -39,6 +40,7 @@ app.include_router(processes_router)
 app.include_router(movements_router)
 app.include_router(stocks_router)
 app.include_router(alerts_router)
+app.include_router(dashboard_router)
 
 @app.get("/")
 async def root():

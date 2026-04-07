@@ -81,6 +81,7 @@ def create_product(
         min_unit_price=create_product_dto.min_unit_price,
         lead_time_days=create_product_dto.lead_time_days,
         restorage=create_product_dto.restorage,
+        limite_critico=create_product_dto.limite_critico,
         company_id=create_product_dto.company_id
     ))
     return ProductDTO.from_entity(product)

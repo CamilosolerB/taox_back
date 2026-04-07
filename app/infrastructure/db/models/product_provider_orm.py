@@ -1,7 +1,7 @@
 """
 ORM Model para Producto-Proveedor
 """
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.infrastructure.db.base import Base
@@ -14,6 +14,7 @@ class ProductProviderORM(Base):
     codigo_producto = Column(String(50), ForeignKey("products.id_product"), primary_key=True)
     cad_proveedor = Column(String(50), ForeignKey("proveedor.cad_proveedor"), primary_key=True)
     es_principal = Column(Boolean, default=False, nullable=False)
+    precio = Column(Float, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     

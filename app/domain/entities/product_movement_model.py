@@ -15,6 +15,7 @@ class ProductMovement:
         id_proceso_destino: UUID,
         cantidad: int,
         id_movimiento: int = None,
+        tipo_movimiento: str = 'traslado', # 'entrada', 'salida', 'traslado'
         notas: str = None,
         id_empresa: UUID = None,
         estado: str = 'completado',  # 'pendiente', 'en_transito', 'completado', 'cancelado'
@@ -25,6 +26,7 @@ class ProductMovement:
         self.codigo_producto = codigo_producto
         self.id_proceso_origen = id_proceso_origen
         self.id_proceso_destino = id_proceso_destino
+        self.tipo_movimiento = tipo_movimiento
         self.cantidad = cantidad
         self.notas = notas
         self.id_empresa = id_empresa
@@ -33,4 +35,4 @@ class ProductMovement:
         self.updated_at = updated_at or datetime.utcnow()
     
     def __repr__(self):
-        return f"ProductMovement(id={self.id_movimiento}, producto='{self.codigo_producto}', cantidad={self.cantidad}, estado='{self.estado}')"
+        return f"ProductMovement(id={self.id_movimiento}, producto='{self.codigo_producto}', tipo='{self.tipo_movimiento}', cantidad={self.cantidad}, estado='{self.estado}')"

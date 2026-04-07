@@ -142,8 +142,10 @@ class GetStockWarehousesUseCase:
 class UpdateStockWarehouseUseCase:
     """Use case para actualizar stock en almacén"""
     
-    def __init__(self, stock_warehouse_repository: StockWarehouseRepository):
+    def __init__(self, stock_warehouse_repository: StockWarehouseRepository, product_repository=None, stock_alert_repository=None):
         self.stock_warehouse_repository = stock_warehouse_repository
+        self.product_repository = product_repository
+        self.stock_alert_repository = stock_alert_repository
     
     def execute(self, codigo_producto: str, stock: StockWarehouse) -> StockWarehouse:
         """Actualiza un stock"""
@@ -163,10 +165,30 @@ class UpdateStockWarehouseUseCase:
     
     def decrement(self, product_code: str, quantity: int, company_id: str) -> StockWarehouse:
         """Decrementa el stock"""
+        import uuid
         logger.info(f"Decrementando stock: {product_code} -{quantity}")
         stock = self.stock_warehouse_repository.decrement_stock(product_code, quantity, company_id)
         if not stock:
             raise Exception(f"Could not decrement stock")
+            
+        if self.product_repository and self.stock_alert_repository:
+            product = self.product_repository.get_product_by_id(product_code)
+            if product and hasattr(product, 'limite_critico') and product.limite_critico is not None:
+                if stock.cantidad <= product.limite_critico:
+                    from app.domain.entities.stock_alert_model import StockAlert
+                    alert = StockAlert(
+                        codigo_producto=product_code,
+                        id_proceso=uuid.uuid4(),
+                        tipo_alerta='stock_critico',
+                        cantidad_actual=stock.cantidad,
+                        cantidad_referencia=product.limite_critico,
+                        id_empresa=uuid.UUID(company_id) if isinstance(company_id, str) else company_id,
+                        estado='activa',
+                        descripcion=f"Stock crítico alcanzado: {stock.cantidad} <= {product.limite_critico}"
+                    )
+                    self.stock_alert_repository.create_alert(alert)
+                    logger.info(f"Alerta de stock crítico generada para {product_code}")
+                    
         return stock
 
 

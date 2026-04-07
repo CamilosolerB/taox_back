@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, ForeignKey
+from sqlalchemy import Column, String, ForeignKey, Float
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import relationship
 from app.infrastructure.db.base import Base
@@ -14,6 +14,7 @@ class Product(Base):
     min_unit_price = Column(String, nullable=False)
     lead_time_days = Column(String, nullable=False)
     restorage = Column(String, nullable=False)
+    limite_critico = Column(Float, nullable=False, server_default='0.0')
     company_id = Column(PG_UUID(as_uuid=True), ForeignKey("companies.id_company"), nullable=False)
     company = relationship("Company", back_populates="products")
     product_proveedores = relationship("ProductProviderORM", back_populates="producto")

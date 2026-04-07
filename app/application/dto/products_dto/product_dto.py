@@ -12,6 +12,7 @@ class ProductDTO(BaseModel):
     min_unit_price: float
     lead_time_days: int
     restorage: str
+    limite_critico: float
     company_id: UUID
 
     model_config = ConfigDict(from_attributes=True)
@@ -28,5 +29,6 @@ class ProductDTO(BaseModel):
             min_unit_price=product.min_unit_price,
             lead_time_days=product.lead_time_days,
             restorage=product.restorage,
+            limite_critico=product.limite_critico,
             company_id=product.company_id
         )

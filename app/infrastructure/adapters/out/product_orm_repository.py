@@ -21,6 +21,7 @@ class ProductORMRepository(ProductRepository):
                 min_unit_price=float(product.min_unit_price),
                 lead_time_days=int(product.lead_time_days),
                 restorage=product.restorage,
+                limite_critico=float(product.limite_critico) if product.limite_critico is not None else 0.0,
                 company_id=product.company_id
             )
             for product in products
@@ -40,6 +41,7 @@ class ProductORMRepository(ProductRepository):
             min_unit_price=float(product.min_unit_price),
             lead_time_days=int(product.lead_time_days),
             restorage=product.restorage,
+            limite_critico=float(product.limite_critico) if product.limite_critico is not None else 0.0,
             company_id=product.company_id
         )
 
@@ -56,6 +58,7 @@ class ProductORMRepository(ProductRepository):
                 min_unit_price=float(product.min_unit_price),
                 lead_time_days=int(product.lead_time_days),
                 restorage=product.restorage,
+                limite_critico=float(product.limite_critico) if product.limite_critico is not None else 0.0,
                 company_id=product.company_id
             )
             for product in products
@@ -72,6 +75,7 @@ class ProductORMRepository(ProductRepository):
             min_unit_price=str(product.min_unit_price),
             lead_time_days=str(product.lead_time_days),
             restorage=product.restorage,
+            limite_critico=product.limite_critico,
             company_id=product.company_id
         )
         self.session.add(product_orm)
@@ -87,6 +91,7 @@ class ProductORMRepository(ProductRepository):
             min_unit_price=float(product_orm.min_unit_price),
             lead_time_days=int(product_orm.lead_time_days),
             restorage=product_orm.restorage,
+            limite_critico=float(product_orm.limite_critico) if product_orm.limite_critico is not None else 0.0,
             company_id=product_orm.company_id
         )
 
@@ -113,6 +118,7 @@ class ProductORMRepository(ProductRepository):
             min_unit_price=float(product_orm.min_unit_price),
             lead_time_days=int(product_orm.lead_time_days),
             restorage=product_orm.restorage,
+            limite_critico=float(product_orm.limite_critico) if product_orm.limite_critico is not None else 0.0,
             company_id=product_orm.company_id
         )
 

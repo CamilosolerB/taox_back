@@ -4,12 +4,13 @@ DTOs for Chemical Stock entity
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
 
 
 class ChemicalStockCreateDTO(BaseModel):
     """DTO para crear un nuevo stock químico"""
     codigo_producto: str = Field(..., description="Código del producto químico", min_length=1, max_length=50)
-    id_proceso: str = Field(..., description="ID del proceso donde está el stock")
+    id_proceso: UUID = Field(..., description="ID del proceso donde está el stock")
     cantidad_actual: float = Field(..., description="Cantidad actual disponible", ge=0)
     cantidad_minima: float = Field(..., description="Cantidad mínima para alertas críticas", gt=0)
     cantidad_maxima: float = Field(..., description="Capacidad máxima del proceso", gt=0)
@@ -20,7 +21,7 @@ class ChemicalStockCreateDTO(BaseModel):
         json_schema_extra = {
             "example": {
                 "codigo_producto": "CHEM001",
-                "id_proceso": 1,
+                "id_proceso": "550e8400-e29b-41d4-a716-446655440001",
                 "cantidad_actual": 50.0,
                 "cantidad_minima": 10.0,
                 "cantidad_maxima": 100.0,
@@ -52,7 +53,7 @@ class ChemicalStockResponseDTO(BaseModel):
     """DTO para respuestas de stock químico"""
     id_stock_quimico: int
     codigo_producto: str
-    id_proceso: str
+    id_proceso: UUID
     cantidad_actual: float
     cantidad_minima: float
     cantidad_maxima: float
@@ -71,7 +72,7 @@ class ChemicalStockResponseDTO(BaseModel):
             "example": {
                 "id_stock_quimico": 1,
                 "codigo_producto": "CHEM001",
-                "id_proceso": 1,
+                "id_proceso": "550e8400-e29b-41d4-a716-446655440001",
                 "cantidad_actual": 50.0,
                 "cantidad_minima": 10.0,
                 "cantidad_maxima": 100.0,

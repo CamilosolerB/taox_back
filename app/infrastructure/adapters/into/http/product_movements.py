@@ -31,6 +31,7 @@ def _movement_to_response_dto(movement):
         codigo_producto=movement.codigo_producto,
         id_proceso_origen=str(movement.id_proceso_origen),
         id_proceso_destino=str(movement.id_proceso_destino),
+        tipo_movimiento=movement.tipo_movimiento,
         cantidad=movement.cantidad,
         notas=movement.notas,
         id_empresa=str(movement.id_empresa),

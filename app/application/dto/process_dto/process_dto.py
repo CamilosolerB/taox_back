@@ -4,6 +4,7 @@ DTOs for Process entity
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
 
 
 class ProcessCreateDTO(BaseModel):
@@ -42,7 +43,7 @@ class ProcessUpdateDTO(BaseModel):
 
 class ProcessResponseDTO(BaseModel):
     """DTO para respuestas de proceso"""
-    id_proceso: str
+    id_proceso: UUID
     nombre: str
     descripcion: Optional[str]
     tipo_proceso: str

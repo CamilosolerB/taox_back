@@ -18,12 +18,14 @@ class ProductProvider:
         codigo_producto: str,
         cad_proveedor: str,
         es_principal: bool = False,
+        precio: Optional[float] = None,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None
     ):
         self.codigo_producto = codigo_producto
         self.cad_proveedor = cad_proveedor
         self.es_principal = es_principal
+        self.precio = precio
         self.created_at = created_at
         self.updated_at = updated_at
     

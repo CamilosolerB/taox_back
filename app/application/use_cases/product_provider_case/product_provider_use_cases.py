@@ -19,7 +19,8 @@ class CreateProductProviderUseCase:
         self,
         codigo_producto: str,
         cad_proveedor: str,
-        es_principal: bool = False
+        es_principal: bool = False,
+        precio: float = None
     ) -> ProductProvider:
         """Crea una relación producto-proveedor"""
         logger.info(f"Creando relación: producto={codigo_producto}, proveedor={cad_proveedor}")
@@ -27,7 +28,8 @@ class CreateProductProviderUseCase:
         product_provider = ProductProvider(
             codigo_producto=codigo_producto,
             cad_proveedor=cad_proveedor,
-            es_principal=es_principal
+            es_principal=es_principal,
+            precio=precio
         )
         
         created = self.product_provider_repository.create_product_provider(product_provider)

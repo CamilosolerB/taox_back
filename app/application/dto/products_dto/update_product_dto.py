@@ -10,3 +10,4 @@ class UpdateProductDTO(BaseModel):
     min_unit_price: float | None = None
     lead_time_days: int | None = None
     restorage: str | None = None
+    limite_critico: float | None = None

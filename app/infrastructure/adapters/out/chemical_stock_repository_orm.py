@@ -29,12 +29,12 @@ class ChemicalStockORMRepository(ChemicalStockRepository):
         ).first()
         return self._orm_to_entity(stock_orm) if stock_orm else None
     
-    def get_stock_by_product_and_process(self, codigo_producto: str, id_processo: UUID, company_id: str) -> ChemicalStock:
+    def get_stock_by_product_and_process(self, codigo_producto: str, id_proceso: UUID, company_id: str) -> ChemicalStock:
         company_uuid = UUID(company_id) if isinstance(company_id, str) else company_id
-        processo_uuid = UUID(id_processo) if isinstance(id_processo, str) else id_processo
+        proceso_uuid = UUID(id_proceso) if isinstance(id_proceso, str) else id_proceso
         stock_orm = self.db.query(ChemicalStockORM).filter(
-            ChemicalStockORM.codigo_product == codigo_producto,
-            ChemicalStockORM.id_processo == processo_uuid,
+            ChemicalStockORM.codigo_producto == codigo_producto,
+            ChemicalStockORM.id_proceso == proceso_uuid,
             ChemicalStockORM.id_empresa == company_uuid
         ).first()
         return self._orm_to_entity(stock_orm) if stock_orm else None

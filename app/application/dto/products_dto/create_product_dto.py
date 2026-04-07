@@ -12,4 +12,5 @@ class CreateProductDTO(BaseModel):
     min_unit_price: float
     lead_time_days: int
     restorage: str
+    limite_critico: float
     company_id: UUID

@@ -89,7 +89,8 @@ def create_product_provider(
         return create_pp_use_case.execute(
             codigo_producto=pp_dto.codigo_producto,
             cad_proveedor=pp_dto.cad_proveedor,
-            es_principal=pp_dto.es_principal
+            es_principal=pp_dto.es_principal,
+            precio=pp_dto.precio
         )
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -105,7 +106,17 @@ def update_product_provider(
 ):
     """Actualiza una relación producto-proveedor"""
     logger.info(f"Actualizando relación - Producto: {product_code}, Proveedor: {provider_id}")
-    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
+    try:
+        from app.domain.entities.product_provider_model import ProductProvider
+        updated_model = ProductProvider(
+            codigo_producto=product_code,
+            cad_proveedor=provider_id,
+            es_principal=pp_dto.es_principal if pp_dto.es_principal is not None else False,
+            precio=pp_dto.precio
+        )
+        return update_pp_use_case.execute(product_code, provider_id, updated_model)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.post("/{product_code}/{provider_id}/set-main")

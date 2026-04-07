@@ -17,6 +17,7 @@ class ProductMovementORM(Base):
     codigo_producto = Column(String(50), ForeignKey("products.id_product"), nullable=False)
     id_proceso_origen = Column(PG_UUID(as_uuid=True), ForeignKey("procesos.id_proceso"), nullable=False)
     id_proceso_destino = Column(PG_UUID(as_uuid=True), ForeignKey("procesos.id_proceso"), nullable=False)
+    tipo_movimiento = Column(String(20), nullable=False, default="traslado") # entrada, salida, traslado
     cantidad = Column(Float, nullable=False)
     notas = Column(String(500))
     id_empresa = Column(PG_UUID(as_uuid=True), ForeignKey("companies.id_company"), nullable=False)

@@ -4,12 +4,13 @@ DTOs for Stock Alert entity
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
 
 
 class StockAlertCreateDTO(BaseModel):
     """DTO para crear una nueva alerta de stock"""
     codigo_producto: str = Field(..., description="Código del producto con alerta", min_length=1, max_length=50)
-    id_proceso: str = Field(..., description="ID del proceso afectado")
+    id_proceso: UUID = Field(..., description="ID del proceso afectado")
     tipo_alerta: str = Field(..., description="Tipo de alerta (stock_critico, stock_bajo, exceso)")
     cantidad_actual: float = Field(..., description="Cantidad actual", ge=0)
     cantidad_referencia: float = Field(..., description="Cantidad de referencia (mínima, máxima, etc)", ge=0)
@@ -48,7 +49,7 @@ class StockAlertResponseDTO(BaseModel):
     """DTO para respuestas de alerta de stock"""
     id_alerta: int
     codigo_producto: str
-    id_proceso: str
+    id_proceso: UUID
     tipo_alerta: str
     cantidad_actual: float
     cantidad_referencia: float

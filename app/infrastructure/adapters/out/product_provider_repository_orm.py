@@ -22,6 +22,7 @@ class ProductProviderRepositoryORM(ProductProviderRepository):
             codigo_producto=orm.codigo_producto,
             cad_proveedor=orm.cad_proveedor,
             es_principal=orm.es_principal,
+            precio=orm.precio,
             created_at=orm.created_at,
             updated_at=orm.updated_at
         )
@@ -31,7 +32,8 @@ class ProductProviderRepositoryORM(ProductProviderRepository):
         return ProductProviderORM(
             codigo_producto=entity.codigo_producto,
             cad_proveedor=entity.cad_proveedor,
-            es_principal=entity.es_principal
+            es_principal=entity.es_principal,
+            precio=entity.precio
         )
     
     def get_all_product_providers(self) -> List[ProductProvider]:
@@ -85,6 +87,7 @@ class ProductProviderRepositoryORM(ProductProviderRepository):
             return None
         
         orm.es_principal = product_provider.es_principal
+        orm.precio = product_provider.precio
         self.session.commit()
         self.session.refresh(orm)
         return self._orm_to_entity(orm)

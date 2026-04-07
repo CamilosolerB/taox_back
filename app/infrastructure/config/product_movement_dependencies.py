@@ -5,7 +5,8 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 from app.infrastructure.db.session import get_session
 from app.infrastructure.adapters.out.product_movement_repository_orm import ProductMovementORMRepository
-from app.infrastructure.adapters.out.chemical_stock_repository_orm import ChemicalStockORMRepository
+from app.infrastructure.adapters.out.stock_repository_orm import StockWarehouseRepositoryORM
+from app.infrastructure.adapters.out.product_orm_repository import ProductORMRepository
 from app.infrastructure.adapters.out.stock_alert_repository_orm import StockAlertORMRepository
 from app.application.use_cases.product_movement_case import (
     GetAllMovementsUseCase,
@@ -16,7 +17,8 @@ from app.application.use_cases.product_movement_case import (
     DeleteMovementUseCase
 )
 from app.domain.ports.out.product_movement_repository import ProductMovementRepository
-from app.domain.ports.out.chemical_stock_repository import ChemicalStockRepository
+from app.domain.ports.out.stock_warehouse_repository import StockWarehouseRepository
+from app.domain.ports.out.product_repository import ProductRepository
 from app.domain.ports.out.stock_alert_repository import StockAlertRepository
 
 
@@ -25,9 +27,13 @@ def get_movement_repository(session: Session = Depends(get_session)) -> ProductM
     return ProductMovementORMRepository(session)
 
 
-def get_chemical_stock_repository(session: Session = Depends(get_session)) -> ChemicalStockRepository:
-    """Inyecta el repositorio de stock químico"""
-    return ChemicalStockORMRepository(session)
+def get_stock_warehouse_repository(session: Session = Depends(get_session)) -> StockWarehouseRepository:
+    """Inyecta el repositorio de stock general del almacen"""
+    return StockWarehouseRepositoryORM(session)
+
+def get_product_repository(session: Session = Depends(get_session)) -> ProductRepository:
+    """Inyecta el repositorio de productos"""
+    return ProductORMRepository(session)
 
 
 def get_stock_alert_repository(session: Session = Depends(get_session)) -> StockAlertRepository:
@@ -51,11 +57,12 @@ def get_get_movement_by_id_use_case(
 
 def get_create_movement_use_case(
     movement_repository: ProductMovementRepository = Depends(get_movement_repository),
-    stock_repository: ChemicalStockRepository = Depends(get_chemical_stock_repository),
+    stock_warehouse_repository: StockWarehouseRepository = Depends(get_stock_warehouse_repository),
+    product_repository: ProductRepository = Depends(get_product_repository),
     alert_repository: StockAlertRepository = Depends(get_stock_alert_repository)
 ) -> CreateMovementUseCase:
-    """Inyecta el caso de uso para crear un movimiento con lógica de alertas"""
-    return CreateMovementUseCase(movement_repository, stock_repository, alert_repository)
+    """Inyecta el caso de uso para crear un movimiento con lógica de alertas dependiente del almacen general"""
+    return CreateMovementUseCase(movement_repository, stock_warehouse_repository, product_repository, alert_repository)
 
 
 def get_update_movement_use_case(

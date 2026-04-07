@@ -4,13 +4,15 @@ DTOs for Product Movement entity
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
 
 
 class ProductMovementCreateDTO(BaseModel):
     """DTO para crear un nuevo movimiento"""
     codigo_producto: str = Field(..., description="Código del producto", min_length=1, max_length=50)
-    id_proceso_origen: str = Field(..., description="ID del proceso de origen")
-    id_proceso_destino: str = Field(..., description="ID del proceso de destino")
+    id_proceso_origen: UUID = Field(..., description="ID del proceso de origen")
+    id_proceso_destino: UUID = Field(..., description="ID del proceso de destino")
+    tipo_movimiento: str = Field('traslado', description="Tipo de movimiento (entrada, salida, traslado)")
     cantidad: float = Field(..., description="Cantidad a mover", gt=0)
     notas: Optional[str] = Field(None, description="Notas adicionales del movimiento", max_length=500)
     id_empresa: str = Field(..., description="ID de la empresa propietaria")
@@ -19,8 +21,9 @@ class ProductMovementCreateDTO(BaseModel):
         json_schema_extra = {
             "example": {
                 "codigo_producto": "CHEM001",
-                "id_proceso_origen": 1,
-                "id_proceso_destino": 2,
+                "id_proceso_origen": "550e8400-e29b-41d4-a716-446655440001",
+                "id_proceso_destino": "550e8400-e29b-41d4-a716-446655440002",
+                "tipo_movimiento": "traslado",
                 "cantidad": 10.5,
                 "notas": "Movimiento de producción a préstamo",
                 "id_empresa": "company-123"
@@ -46,8 +49,9 @@ class ProductMovementResponseDTO(BaseModel):
     """DTO para respuestas de movimiento"""
     id_movimiento: int
     codigo_producto: str
-    id_proceso_origen: str
-    id_proceso_destino: str
+    id_proceso_origen: UUID
+    id_proceso_destino: UUID
+    tipo_movimiento: str
     cantidad: float
     notas: Optional[str]
     id_empresa: str
@@ -63,6 +67,7 @@ class ProductMovementResponseDTO(BaseModel):
                 "codigo_producto": "CHEM001",
                 "id_proceso_origen": "550e8400-e29b-41d4-a716-446655440001",
                 "id_proceso_destino": "550e8400-e29b-41d4-a716-446655440002",
+                "tipo_movimiento": "traslado",
                 "cantidad": 10.5,
                 "notas": "Movimiento de producción a préstamo",
                 "id_empresa": "company-123",

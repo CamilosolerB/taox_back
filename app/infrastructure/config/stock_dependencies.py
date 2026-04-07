@@ -51,8 +51,15 @@ def get_stock_warehouses_use_case(stock_repository: StockWarehouseRepository = D
     return GetStockWarehousesUseCase(stock_repository)
 
 
-def get_update_stock_warehouse_use_case(stock_repository: StockWarehouseRepository = Depends(get_stock_warehouse_repository)) -> UpdateStockWarehouseUseCase:
-    return UpdateStockWarehouseUseCase(stock_repository)
+def get_update_stock_warehouse_use_case(
+    stock_repository: StockWarehouseRepository = Depends(get_stock_warehouse_repository),
+    session: Session = Depends(get_session)
+) -> UpdateStockWarehouseUseCase:
+    from app.infrastructure.adapters.out.product_orm_repository import ProductRepositoryORM
+    from app.infrastructure.adapters.out.stock_alert_repository_orm import StockAlertRepositoryORM
+    product_repo = ProductRepositoryORM(session)
+    alert_repo = StockAlertRepositoryORM(session)
+    return UpdateStockWarehouseUseCase(stock_repository, product_repo, alert_repo)
 
 
 def get_delete_stock_warehouse_use_case(stock_repository: StockWarehouseRepository = Depends(get_stock_warehouse_repository)) -> DeleteStockWarehouseUseCase:
