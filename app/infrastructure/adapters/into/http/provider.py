@@ -4,6 +4,8 @@ Endpoints para Proveedor
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 from uuid import UUID
+from fastapi.responses import StreamingResponse
+from app.application.services.report_service import ReportService
 from app.application.dto.provider_dto import ProviderCreateDTO, ProviderUpdateDTO, ProviderDTO
 from app.application.use_cases.provider_case.create_provider import CreateProviderUseCase
 from app.application.use_cases.provider_case.provider_use_cases import (
@@ -36,6 +38,25 @@ def get_providers(
     logger.info(f"Obteniendo proveedores de empresa: {company_id}")
     providers = get_providers_use_case.get_all(str(company_id))
     return [ProviderDTO.from_entity(provider) for provider in providers]
+
+
+@router.get("/export/csv", status_code=status.HTTP_200_OK)
+def export_providers_csv(
+    company_id: UUID,
+    get_providers_use_case: GetProvidersUseCase = Depends(get_providers_use_case),
+    current_user: Annotated[dict, Depends(get_current_user)] = None
+):
+    """Exporta todos los proveedores de una empresa a CSV"""
+    logger.info(f"Exportando proveedores CSV de empresa: {company_id}")
+    providers = get_providers_use_case.get_all(str(company_id))
+    data = [ProviderDTO.from_entity(provider).model_dump() for provider in providers]
+    csv_file = ReportService.generate_csv(data)
+    
+    return StreamingResponse(
+        iter([csv_file.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=proveedores_{company_id}.csv"}
+    )
 
 
 @router.get("/{provider_id}", response_model=ProviderDTO)

@@ -2,7 +2,9 @@
 HTTP endpoints para Product Movement
 """
 from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi.responses import StreamingResponse
 from typing import List
+from app.application.services.report_service import ReportService
 from app.application.dto.product_movement_dto import ProductMovementCreateDTO, ProductMovementUpdateDTO, ProductMovementResponseDTO
 from app.application.use_cases.product_movement_case import (
     GetAllMovementsUseCase,
@@ -49,6 +51,38 @@ def get_all_movements(
     """Obtiene todos los movimientos de una empresa"""
     movements = use_case.execute(company_id)
     return [_movement_to_response_dto(m) for m in movements]
+
+@router.get("/export/excel", status_code=status.HTTP_200_OK)
+def export_movements_excel(
+    company_id: str,
+    use_case: GetAllMovementsUseCase = Depends(get_get_all_movements_use_case)
+):
+    """Exporta todos los movimientos de una empresa en Excel"""
+    movements = use_case.execute(company_id)
+    data = [_movement_to_response_dto(m).model_dump() for m in movements]
+    excel_file = ReportService.generate_excel(data)
+    
+    return StreamingResponse(
+        excel_file,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=movimientos_{company_id}.xlsx"}
+    )
+
+@router.get("/export/pdf", status_code=status.HTTP_200_OK)
+def export_movements_pdf(
+    company_id: str,
+    use_case: GetAllMovementsUseCase = Depends(get_get_all_movements_use_case)
+):
+    """Exporta todos los movimientos de una empresa en PDF"""
+    movements = use_case.execute(company_id)
+    data = [_movement_to_response_dto(m).model_dump() for m in movements]
+    pdf_file = ReportService.generate_pdf(data, title="Reporte de Movimientos")
+    
+    return StreamingResponse(
+        pdf_file,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=movimientos_{company_id}.pdf"}
+    )
 
 
 @router.get("/{id_movimiento}", response_model=ProductMovementResponseDTO, status_code=status.HTTP_200_OK)

@@ -22,6 +22,8 @@ from app.core.middleware.auth_middleware import (
     require_admin
 )
 from app.domain.entities.product_model import Product
+from fastapi.responses import StreamingResponse
+from app.application.services.report_service import ReportService
 
 router = APIRouter(prefix="/products", tags=["products"])
 
@@ -61,6 +63,26 @@ def get_products_by_company_id(
     """
     products = get_products_by_company_id_use_case.execute(str(company_id))
     return [ProductDTO.from_entity(product) for product in products]
+
+@router.get("/by-company/{company_id}/export/excel", dependencies=[Depends(get_current_user)])
+def export_products_excel(
+    company_id: UUID,
+    get_products_by_company_id_use_case: GetProductsByCompanyIdUseCase = Depends(get_products_by_company_id_use_case),
+    payload: dict = Depends(get_current_user)
+):
+    """
+    Exporta los productos de una empresa en formato Excel
+    """
+    products = get_products_by_company_id_use_case.execute(str(company_id))
+    data = [ProductDTO.from_entity(p).model_dump() for p in products]
+    
+    excel_file = ReportService.generate_excel(data)
+    
+    return StreamingResponse(
+        excel_file,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=productos.xlsx"}
+    )
 
 @router.post("/", response_model=ProductDTO, dependencies=[Depends(require_admin)])
 def create_product(
