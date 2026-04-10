@@ -1,5 +1,8 @@
 # taox_back
 
+> [!TIP]
+> **¿Eres nuevo en esto?** Si no eres desarrollador y quieres instalar este proyecto, sigue nuestra [Guía de Instalación Detallada](../GUIA_INSTALACION.md).
+
 ## Descripción General
 
 `taox_back` es el componente de backend de una aplicación, desarrollado en Python utilizando el framework FastAPI. Este proyecto sigue una arquitectura modular y está diseñado para ser escalable y mantenible, proporcionando una API robusta para la gestión de datos y lógica de negocio.
