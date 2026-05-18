@@ -14,7 +14,7 @@ class ChemicalStockORM(Base):
     __tablename__ = "stock_quimicos"
     
     id_stock_quimico = Column(Integer, primary_key=True, autoincrement=True)
-    codigo_producto = Column(String(50), ForeignKey("products.id_product"), nullable=False)
+    codigo_producto = Column(String(50), ForeignKey("products.id_product", onupdate="CASCADE"), nullable=False)
     id_proceso = Column(PG_UUID(as_uuid=True), ForeignKey("procesos.id_proceso"), nullable=False)
     cantidad_actual = Column(Float, nullable=False, default=0)
     cantidad_minima = Column(Float, nullable=False)

@@ -1,7 +1,7 @@
 """
 DTOs for Product Movement entity
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
@@ -10,12 +10,18 @@ from uuid import UUID
 class ProductMovementCreateDTO(BaseModel):
     """DTO para crear un nuevo movimiento"""
     codigo_producto: str = Field(..., description="Código del producto", min_length=1, max_length=50)
-    id_proceso_origen: UUID = Field(..., description="ID del proceso de origen")
-    id_proceso_destino: UUID = Field(..., description="ID del proceso de destino")
+    id_proceso_origen: Optional[UUID] = Field(None, description="ID del proceso de origen")
+    id_proceso_destino: Optional[UUID] = Field(None, description="ID del proceso de destino")
     tipo_movimiento: str = Field('traslado', description="Tipo de movimiento (entrada, salida, traslado)")
     cantidad: float = Field(..., description="Cantidad a mover", gt=0)
     notas: Optional[str] = Field(None, description="Notas adicionales del movimiento", max_length=500)
     id_empresa: str = Field(..., description="ID de la empresa propietaria")
+    
+    @model_validator(mode='after')
+    def validate_processes(self) -> 'ProductMovementCreateDTO':
+        if self.tipo_movimiento == 'entrada' and not self.id_proceso_destino:
+            raise ValueError("El proceso de destino es obligatorio para entradas")
+        return self
     
     class Config:
         json_schema_extra = {

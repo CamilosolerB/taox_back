@@ -22,6 +22,10 @@ from app.domain.ports.out.product_repository import ProductRepository
 from app.domain.ports.out.stock_alert_repository import StockAlertRepository
 
 
+from app.infrastructure.config.chemical_stock_dependencies import get_stock_repository
+from app.domain.ports.out.chemical_stock_repository import ChemicalStockRepository
+
+
 def get_movement_repository(session: Session = Depends(get_session)) -> ProductMovementRepository:
     """Inyecta el repositorio de movimientos"""
     return ProductMovementORMRepository(session)
@@ -59,10 +63,17 @@ def get_create_movement_use_case(
     movement_repository: ProductMovementRepository = Depends(get_movement_repository),
     stock_warehouse_repository: StockWarehouseRepository = Depends(get_stock_warehouse_repository),
     product_repository: ProductRepository = Depends(get_product_repository),
-    alert_repository: StockAlertRepository = Depends(get_stock_alert_repository)
+    alert_repository: StockAlertRepository = Depends(get_stock_alert_repository),
+    chemical_stock_repository: ChemicalStockRepository = Depends(get_stock_repository)
 ) -> CreateMovementUseCase:
     """Inyecta el caso de uso para crear un movimiento con lógica de alertas dependiente del almacen general"""
-    return CreateMovementUseCase(movement_repository, stock_warehouse_repository, product_repository, alert_repository)
+    return CreateMovementUseCase(
+        movement_repository, 
+        stock_warehouse_repository, 
+        product_repository, 
+        alert_repository,
+        chemical_stock_repository
+    )
 
 
 def get_update_movement_use_case(

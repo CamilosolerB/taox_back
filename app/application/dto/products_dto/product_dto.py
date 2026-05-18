@@ -13,7 +13,10 @@ class ProductDTO(BaseModel):
     lead_time_days: int
     restorage: str
     limite_critico: float
+    warehouse_id: UUID | None = None
     company_id: UUID
+    fds: str | None = None
+    fds_url: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -30,5 +33,8 @@ class ProductDTO(BaseModel):
             lead_time_days=product.lead_time_days,
             restorage=product.restorage,
             limite_critico=product.limite_critico,
-            company_id=product.company_id
+            warehouse_id=product.warehouse_id if hasattr(product, 'warehouse_id') else None,
+            company_id=product.company_id,
+            fds=product.fds if hasattr(product, 'fds') else None,
+            fds_url=product.fds_url if hasattr(product, 'fds_url') else None
         )

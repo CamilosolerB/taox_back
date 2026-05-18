@@ -9,7 +9,7 @@ class StockLocationORM(Base):
     __tablename__ = "stock_ubicacion"
     
     id_ubicacion = Column(Integer, ForeignKey("ubicacion.id_ubicacion"), primary_key=True)
-    codigo_producto = Column(String(50), ForeignKey("products.id_product"), primary_key=True)
+    codigo_producto = Column(String(50), ForeignKey("products.id_product", onupdate="CASCADE"), primary_key=True)
     cantidad = Column(Integer, nullable=False, default=0)
     id_empresa = Column(PG_UUID(as_uuid=True), ForeignKey("companies.id_company"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -26,7 +26,7 @@ class StockWarehouseORM(Base):
     
     __tablename__ = "stock_almacen"
     
-    codigo_producto = Column(String(50), ForeignKey("products.id_product"), primary_key=True)
+    codigo_producto = Column(String(50), ForeignKey("products.id_product", onupdate="CASCADE"), primary_key=True)
     cantidad = Column(Integer, nullable=False, default=0)
     id_empresa = Column(PG_UUID(as_uuid=True), ForeignKey("companies.id_company"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

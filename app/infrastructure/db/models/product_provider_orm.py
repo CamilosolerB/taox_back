@@ -11,7 +11,7 @@ class ProductProviderORM(Base):
     
     __tablename__ = "producto_proveedor"
     
-    codigo_producto = Column(String(50), ForeignKey("products.id_product"), primary_key=True)
+    codigo_producto = Column(String(50), ForeignKey("products.id_product", onupdate="CASCADE"), primary_key=True)
     cad_proveedor = Column(String(50), ForeignKey("proveedor.cad_proveedor"), primary_key=True)
     es_principal = Column(Boolean, default=False, nullable=False)
     precio = Column(Float, nullable=True)

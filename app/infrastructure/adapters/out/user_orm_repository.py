@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload
+from app.infrastructure.db.models.role_orm import Role as RoleORM
 
 from app.domain.entities.user_model import User
 from app.domain.ports.out.user_repository import UserRepository
@@ -98,8 +99,9 @@ class UserORMRepository(UserRepository):
     
     def delete_user(self, id_user: str) -> None:
         user_orm = self.db.query(UserORM).filter(UserORM.id_user == id_user).first()
-        self.db.delete(user_orm)
-        self.db.commit()
+        if user_orm:
+            self.db.delete(user_orm)
+            self.db.commit()
     
     # Helper methods to get ORM objects with relations loaded
     def get_all_users_orm(self):
@@ -115,4 +117,13 @@ class UserORMRepository(UserRepository):
             joinedload(UserORM.role),
             joinedload(UserORM.company)
         ).filter(UserORM.id_user == id_user).first()
-    
+
+    def get_users_by_role_names(self, role_names: list[str]) -> list:
+        """Retorna usuarios ORM (con relaciones cargadas) cuyo rol coincida con los nombres dados"""
+        users_orm = self.db.query(UserORM).options(
+            joinedload(UserORM.role),
+            joinedload(UserORM.company)
+        ).join(RoleORM, UserORM.role_id == RoleORM.id_role).filter(
+            RoleORM.name.in_(role_names)
+        ).all()
+        return users_orm

@@ -39,11 +39,25 @@ def _process_to_response_dto(process):
 @router.get("/", response_model=List[ProcessResponseDTO], status_code=status.HTTP_200_OK)
 def get_all_processes(
     company_id: str,
+    tipo: str | None = None,
     use_case: GetAllProcessesUseCase = Depends(get_get_all_processes_use_case)
 ):
     """Obtiene todos los procesos de una empresa"""
     processes = use_case.execute(company_id)
+    if tipo:
+        processes = [p for p in processes if p.tipo_proceso == tipo]
     return [_process_to_response_dto(p) for p in processes]
+
+
+@router.get("/warehouses", response_model=List[ProcessResponseDTO], status_code=status.HTTP_200_OK)
+def get_warehouses(
+    company_id: str,
+    use_case: GetAllProcessesUseCase = Depends(get_get_all_processes_use_case)
+):
+    """Obtiene solo los almacenes (procesos con tipo_proceso='almacenamiento')"""
+    processes = use_case.execute(company_id)
+    warehouses = [p for p in processes if p.tipo_proceso == 'almacenamiento']
+    return [_process_to_response_dto(p) for p in warehouses]
 
 
 @router.get("/{id_proceso}", response_model=ProcessResponseDTO, status_code=status.HTTP_200_OK)

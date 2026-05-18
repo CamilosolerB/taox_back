@@ -12,5 +12,17 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
 
+    def get_company_admin_role(self, company_id: str) -> str:
+        """Generate company-specific admin role ID"""
+        return f"company_admin_{company_id}"
+    
+    def is_global_admin(self, role_id: str) -> bool:
+        """Check if role is global admin"""
+        return role_id == self.ADMIN_ROLE_ID
+    
+    def is_company_admin(self, role_id: str, company_id: str) -> bool:
+        """Check if role is company admin for specific company"""
+        return role_id == self.get_company_admin_role(company_id)
+
 
 settings = Settings()

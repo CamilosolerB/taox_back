@@ -53,17 +53,27 @@ def create_company(
     payload: dict = Depends(require_admin)
 ):
     """
-    Crea una nueva company (requiere rol de administrador)
+    Crea una nueva company y su usuario company_admin (requiere rol de administrador)
     """
-    company = create_company_use_case.execute(Company(
-        id_company=None,
-        name=create_company_dto.name,
-        nit=create_company_dto.nit,
-        address=create_company_dto.address,
-        phone=create_company_dto.phone,
-        email=create_company_dto.email,
-        is_active=create_company_dto.is_active
-    ))
+    from fastapi import HTTPException, status
+    try:
+        company = create_company_use_case.execute(
+            company=Company(
+                id_company=None,
+                name=create_company_dto.name,
+                nit=create_company_dto.nit,
+                address=create_company_dto.address,
+                phone=create_company_dto.phone,
+                email=create_company_dto.email,
+                logo=create_company_dto.logo,
+                is_active=create_company_dto.is_active
+            ),
+            admin_username=create_company_dto.admin_username,
+            admin_email=create_company_dto.admin_email,
+            admin_password=create_company_dto.admin_password
+        )
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return CompanyDTO.from_entity(company)
 
 @router.put("/{company_id}", response_model=CompanyDTO, dependencies=[Depends(require_admin)])

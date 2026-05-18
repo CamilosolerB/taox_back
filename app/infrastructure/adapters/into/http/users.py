@@ -49,13 +49,32 @@ def create_user(
 
 @router.get("/", response_model=list[UserDetailDTO], dependencies=[Depends(get_current_user)])
 def get_all_users(
+    role_names: str | None = None,
     get_all_users_use_case: GetAllUsersUseCase = Depends(get_all_users_use_case),
     payload: dict = Depends(get_current_user)
 ):
     """
-    Lista todos los usuarios (requiere autenticación)
+    Lista todos los usuarios (requiere autenticación).
+    Parámetro opcional: role_names (separado por comas) para filtrar por rol.
     """
-    users = get_all_users_use_case.execute()
+    from app.settings import settings
+    
+    current_role_id = payload.get("role_id")
+    company_id = payload.get("company_id")
+    
+    # Si no es Sudo, forzar el filtro por su propia compañía
+    is_sudo = str(current_role_id) == str(settings.ADMIN_ROLE_ID)
+    filter_company_id = None if is_sudo else str(company_id)
+    
+    parsed_roles = [r.strip() for r in role_names.split(",")] if role_names else None
+    
+    users = get_all_users_use_case.execute(
+        role_names=parsed_roles, 
+        company_id=filter_company_id
+    )
+    
+    if parsed_roles:
+        return [UserDetailDTO.from_orm_with_relations(u) for u in users]
     return [UserDetailDTO.from_entity(user) for user in users]
 
 @router.get("/{user_id}", response_model=UserWithRelationsDTO, dependencies=[Depends(get_current_user)])

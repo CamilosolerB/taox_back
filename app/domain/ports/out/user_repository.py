@@ -25,3 +25,7 @@ class UserRepository(ABC):
     @abstractmethod
     def get_all_users(self) -> list[User]:
         pass
+
+    @abstractmethod
+    def get_users_by_role_names(self, role_names: list[str]) -> list[User]:
+        pass

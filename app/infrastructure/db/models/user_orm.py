@@ -13,6 +13,6 @@ class User(Base):
     password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
     role_id = Column(PG_UUID(as_uuid=True), ForeignKey("roles.id_role"), nullable=False)
-    company_id = Column(PG_UUID(as_uuid=True), ForeignKey("companies.id_company"), nullable=False)
+    company_id = Column(PG_UUID(as_uuid=True), ForeignKey("companies.id_company"), nullable=True)
     role = relationship("Role", back_populates="users")
     company = relationship("Company", back_populates="users")

@@ -9,6 +9,7 @@ class CompanyDTO(BaseModel):
     phone: str
     email: str
     is_active: bool
+    logo: str | None = None
 
     @classmethod
     def from_entity(cls, company_orm):
@@ -19,5 +20,6 @@ class CompanyDTO(BaseModel):
             address=company_orm.address,
             phone=company_orm.phone,
             email=company_orm.email,
+            logo=company_orm.logo,
             is_active=company_orm.is_active
         )

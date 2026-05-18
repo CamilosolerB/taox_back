@@ -2,7 +2,8 @@
 HTTP endpoints para Chemical Stock
 """
 from fastapi import APIRouter, Depends, status, HTTPException
-from typing import List
+from typing import List, Optional
+from uuid import UUID
 from app.application.dto.chemical_stock_dto import ChemicalStockCreateDTO, ChemicalStockUpdateDTO, ChemicalStockResponseDTO
 from app.application.use_cases.chemical_stock_case import (
     GetAllStocksUseCase,
@@ -27,10 +28,11 @@ router = APIRouter(prefix="/stocks", tags=["stocks"])
 @router.get("/", response_model=List[ChemicalStockResponseDTO], status_code=status.HTTP_200_OK)
 def get_all_stocks(
     company_id: str,
+    id_proceso: Optional[UUID] = None,
     use_case: GetAllStocksUseCase = Depends(get_get_all_stocks_use_case)
 ):
-    """Obtiene todos los stocks químicos de una empresa"""
-    stocks = use_case.execute(company_id)
+    """Obtiene todos los stocks químicos de una empresa, opcionalmente filtrados por almacén/proceso"""
+    stocks = use_case.execute(company_id, id_proceso)
     return [ChemicalStockResponseDTO.model_validate(s) for s in stocks]
 
 

@@ -1,0 +1,14 @@
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from app.settings import settings
+
+def get_client_ip(request):
+    """
+    Get client IP from request, considering X-Forwarded-For header
+    """
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return get_remote_address(request)
+
+limiter = Limiter(key_func=get_client_ip)

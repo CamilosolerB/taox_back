@@ -14,7 +14,7 @@ class ProductMovementORM(Base):
     __tablename__ = "movimientos_productos"
     
     id_movimiento = Column(Integer, primary_key=True, autoincrement=True)
-    codigo_producto = Column(String(50), ForeignKey("products.id_product"), nullable=False)
+    codigo_producto = Column(String(50), ForeignKey("products.id_product", onupdate="CASCADE"), nullable=False)
     id_proceso_origen = Column(PG_UUID(as_uuid=True), ForeignKey("procesos.id_proceso"), nullable=False)
     id_proceso_destino = Column(PG_UUID(as_uuid=True), ForeignKey("procesos.id_proceso"), nullable=False)
     tipo_movimiento = Column(String(20), nullable=False, default="traslado") # entrada, salida, traslado

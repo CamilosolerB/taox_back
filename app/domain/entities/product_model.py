@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from uuid import UUID
 
 @dataclass
@@ -13,4 +13,7 @@ class Product:
     lead_time_days: int
     restorage: str
     limite_critico: float
-    company_id: UUID
+    warehouse_id: UUID | None = field(default=None)
+    company_id: UUID = field(default=None)
+    fds: str | None = None
+    fds_url: str | None = None

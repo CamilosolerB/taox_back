@@ -61,3 +61,6 @@ Si dice `Application startup complete`, el servidor está listo en `http://local
 Recuerda que para usar el sistema completo necesitas la interfaz visual.
 1. Instalar el repositorio de **Frontend**.
 2. Asegurarte de que este servidor (Backend) esté corriendo antes de abrir la página web.
+
+Email: admin@taox.com
+Contraseña: SudoAdmin2026!

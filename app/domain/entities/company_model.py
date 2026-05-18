@@ -10,3 +10,4 @@ class Company:
     phone: str
     email: str
     is_active: bool
+    logo: str | None = None

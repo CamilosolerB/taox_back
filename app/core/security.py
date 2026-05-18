@@ -1,11 +1,14 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Set
 from jose import JWTError, jwt, ExpiredSignatureError
 from passlib.context import CryptContext
 from app.settings import settings
 import logging
 
 logger = logging.getLogger(__name__)
+
+# In-memory token blacklist (use Redis in production)
+_blacklisted_tokens: Set[str] = set()
 
 # Configuración de hash de contraseñas
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -135,3 +138,43 @@ def is_token_expired(token: str) -> bool:
     """
     payload = decode_token(token)
     return payload is None
+
+
+def blacklist_token(token: str) -> None:
+    """
+    Agrega un token a la lista negra (logout).
+    
+    Args:
+        token: JWT token a blackLISTAR
+    """
+    _blacklisted_tokens.add(token)
+    logger.info(f"Token blacklisted successfully")
+
+
+def is_token_blacklisted(token: str) -> bool:
+    """
+    Verifica si un token está en la lista negra.
+    
+    Args:
+        token: JWT token
+        
+    Returns:
+        True si el token está blacklisted
+    """
+    return token in _blacklisted_tokens
+
+
+def decode_token_with_blacklist_check(token: str) -> Optional[dict]:
+    """
+    Decodifica y valida un JWT token verificando blacklist.
+    
+    Args:
+        token: JWT token a validar
+        
+    Returns:
+        Diccionario con los datos del token si es válido, None si no
+    """
+    if is_token_blacklisted(token):
+        logger.warning("Token en lista negra")
+        return None
+    return decode_token(token)

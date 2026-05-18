@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from uuid import UUID
 
 
 class UpdateProductDTO(BaseModel):
@@ -11,3 +12,7 @@ class UpdateProductDTO(BaseModel):
     lead_time_days: int | None = None
     restorage: str | None = None
     limite_critico: float | None = None
+    warehouse_id: UUID | None = None
+    id_product: str | None = None
+    fds: str | None = None
+    fds_url: str | None = None

@@ -9,7 +9,8 @@ from app.domain.ports.out.stock_warehouse_repository import StockWarehouseReposi
 from app.domain.ports.out.product_repository import ProductRepository
 from app.domain.ports.out.stock_alert_repository import StockAlertRepository
 from app.domain.entities.stock_alert_model import StockAlert
-from app.domain.entities.stock_warehouse_model import StockWarehouse
+from app.domain.ports.out.chemical_stock_repository import ChemicalStockRepository
+from app.domain.entities.chemical_stock_model import ChemicalStock
 from app.application.dto.product_movement_dto import ProductMovementCreateDTO
 from datetime import datetime
 
@@ -24,12 +25,14 @@ class CreateMovementUseCase:
         movement_repository: ProductMovementRepository,
         stock_warehouse_repository: StockWarehouseRepository,
         product_repository: ProductRepository,
-        stock_alert_repository: StockAlertRepository
+        stock_alert_repository: StockAlertRepository,
+        chemical_stock_repository: ChemicalStockRepository
     ):
         self.movement_repository = movement_repository
         self.stock_warehouse_repository = stock_warehouse_repository
         self.product_repository = product_repository
         self.stock_alert_repository = stock_alert_repository
+        self.chemical_stock_repository = chemical_stock_repository
     
     def execute(self, movement_dto: ProductMovementCreateDTO) -> ProductMovement:
         """
@@ -76,45 +79,87 @@ class CreateMovementUseCase:
         """
         tipo = movement_dto.tipo_movimiento
         if tipo in ['salida', 'traslado']:
-            stock = self.stock_warehouse_repository.get_stock_by_product(
-                movement_dto.codigo_producto, movement_dto.id_empresa
+            # Verificar stock en el almacén de origen
+            if not movement_dto.id_proceso_origen:
+                raise ValueError(f"El almacén de origen es obligatorio para {tipo}")
+                
+            stock_local = self.chemical_stock_repository.get_stock_by_product_and_process(
+                movement_dto.codigo_producto, movement_dto.id_proceso_origen, movement_dto.id_empresa
             )
-            cantidad_disponible = stock.cantidad if stock else 0
+            
+            cantidad_disponible = stock_local.cantidad_actual if stock_local else 0
+            
             if cantidad_disponible < movement_dto.cantidad:
-                logger.error(f"Stock insuficiente en almacén global: {cantidad_disponible} < {movement_dto.cantidad}")
-                raise ValueError(f"Stock insuficiente en almacén global. Disponible: {cantidad_disponible}, Solicitado: {movement_dto.cantidad}")
+                logger.error(f"Stock insuficiente en almacén {movement_dto.id_proceso_origen}: {cantidad_disponible} < {movement_dto.cantidad}")
+                raise ValueError(f"Stock insuficiente en almacén de origen. Disponible: {cantidad_disponible}, Solicitado: {movement_dto.cantidad}")
 
     def _update_stock_for_movement(self, movement_dto: ProductMovementCreateDTO) -> None:
         """
         Actualiza el stock basado en el tipo de movimiento (entrada, salida, traslado)
+        Actualiza tanto el stock global como el específico por almacén
         """
         try:
             tipo = movement_dto.tipo_movimiento
             
+            # --- 1. Actualizar Stock Global ---
             if tipo == 'salida':
-                stock_origen = self.stock_warehouse_repository.get_stock_by_product(
-                    movement_dto.codigo_producto, movement_dto.id_empresa
-                )
-                if stock_origen:
-                    stock_origen.cantidad -= movement_dto.cantidad
-                    self.stock_warehouse_repository.update_stock(stock_origen.codigo_producto, stock_origen)
+                self._update_global_stock(movement_dto.codigo_producto, movement_dto.id_empresa, -movement_dto.cantidad)
+            elif tipo == 'entrada':
+                self._update_global_stock(movement_dto.codigo_producto, movement_dto.id_empresa, movement_dto.cantidad)
             
-            if tipo == 'entrada':
-                stock_destino = self.stock_warehouse_repository.get_stock_by_product(
-                    movement_dto.codigo_producto, movement_dto.id_empresa
-                )
-                if stock_destino:
-                    stock_destino.cantidad += movement_dto.cantidad
-                    self.stock_warehouse_repository.update_stock(stock_destino.codigo_producto, stock_destino)
-                else:
-                    new_stock = StockWarehouse(
-                        codigo_producto=movement_dto.codigo_producto,
-                        cantidad=movement_dto.cantidad,
-                        id_empresa=movement_dto.id_empresa
+            # --- 2. Actualizar Stock por Almacén ---
+            if tipo == 'entrada' or tipo == 'traslado':
+                if movement_dto.id_proceso_destino:
+                    self._update_warehouse_stock(
+                        movement_dto.codigo_producto, 
+                        movement_dto.id_proceso_destino, 
+                        movement_dto.id_empresa, 
+                        movement_dto.cantidad
                     )
-                    self.stock_warehouse_repository.create_stock(new_stock)
+            
+            if tipo == 'salida' or tipo == 'traslado':
+                if movement_dto.id_proceso_origen:
+                    self._update_warehouse_stock(
+                        movement_dto.codigo_producto, 
+                        movement_dto.id_proceso_origen, 
+                        movement_dto.id_empresa, 
+                        -movement_dto.cantidad
+                    )
+                    
         except Exception as e:
-            logger.error(f"Error actualizando stock global por movimiento {tipo}: {str(e)}")
+            logger.error(f"Error actualizando stock por movimiento {tipo}: {str(e)}")
+            raise
+
+    def _update_global_stock(self, codigo: str, empresa: str, delta: float) -> None:
+        from app.domain.entities.stock_warehouse_model import StockWarehouse
+        stock = self.stock_warehouse_repository.get_stock_by_product(codigo, empresa)
+        if stock:
+            stock.cantidad += delta
+            self.stock_warehouse_repository.update_stock(codigo, stock)
+        elif delta > 0:
+            new_stock = StockWarehouse(codigo_producto=codigo, cantidad=delta, id_empresa=empresa)
+            self.stock_warehouse_repository.create_stock(new_stock)
+
+    def _update_warehouse_stock(self, codigo: str, id_proceso, empresa: str, delta: float) -> None:
+        stock = self.chemical_stock_repository.get_stock_by_product_and_process(codigo, id_proceso, empresa)
+        if stock:
+            nueva_cantidad = stock.cantidad_actual + delta
+            self.chemical_stock_repository.update_stock_quantity(stock.id_stock_quimico, nueva_cantidad)
+        elif delta > 0:
+            # Si no existe y es entrada, crear registro (esto podría requerir más campos como min/max)
+            # Por ahora creamos con valores por defecto
+            new_stock = ChemicalStock(
+                id_stock_quimico=None,
+                codigo_producto=codigo,
+                id_proceso=id_proceso,
+                cantidad_actual=delta,
+                cantidad_minima=0,
+                cantidad_maxima=1000,
+                unidad_medida="unidades",
+                id_empresa=empresa,
+                is_active=True
+            )
+            self.chemical_stock_repository.create_stock(new_stock)
 
     def _check_and_generate_alerts(self, movement_dto: ProductMovementCreateDTO) -> None:
         """

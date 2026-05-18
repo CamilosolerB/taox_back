@@ -13,4 +13,7 @@ class CreateProductDTO(BaseModel):
     lead_time_days: int
     restorage: str
     limite_critico: float
+    warehouse_id: UUID | None = None
     company_id: UUID
+    fds: str | None = None
+    fds_url: str | None = None

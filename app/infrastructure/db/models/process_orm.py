@@ -27,3 +27,4 @@ class ProcessORM(Base):
     movimientos_origen = relationship("ProductMovementORM", foreign_keys="ProductMovementORM.id_proceso_origen", back_populates="proceso_origen")
     movimientos_destino = relationship("ProductMovementORM", foreign_keys="ProductMovementORM.id_proceso_destino", back_populates="proceso_destino")
     stocks = relationship("ChemicalStockORM", back_populates="proceso")
+    productos = relationship("Product", back_populates="warehouse")
