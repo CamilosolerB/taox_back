@@ -43,7 +43,8 @@ TEMPLATE_COLUMNS = [
     "nombre_generico",
     "unidad_medida",
     "limite_critico",
-    "fds"
+    "fds",
+    "identificador_almacen"
 ]
 
 REQUIRED_COLUMNS = {"codigo", "nombre", "cantidad"}
@@ -102,6 +103,7 @@ def download_bulk_template(
         "unidad_medida": "KG",
         "limite_critico": 10.0,
         "fds": "X",
+        "identificador_almacen": "Opcional: pegue aquí el código del almacén (UUID)"
     }
     df = pd.concat([df, pd.DataFrame([example])], ignore_index=True)
 
@@ -198,6 +200,7 @@ def bulk_upload_products(
         limite_critico_col = next((c for c in df.columns if c in ["limite_critico", "limite critico", "límite crítico", "limite_critico_stock"]), None)
         fds_col = next((c for c in df.columns if c in ["fds", "ficha de seguridad", "ficha_seguridad"]), None)
         provider_col = next((c for c in df.columns if c in ["proveedor", "proveedor principal", "proveedor_principal"]), None)
+        warehouse_id_col = next((c for c in df.columns if c in ["identificador_almacen", "identificador del almacen", "identificador del almacén", "id_almacen", "id del almacen", "id del almacén", "warehouse_id", "warehouse id"]), None)
 
         # Get or create warehouse for this sheet
         warehouse_name = str(sheet_name).strip()
@@ -271,6 +274,30 @@ def bulk_upload_products(
                 
                 provider_name = str(row.get(provider_col, "")).strip() if provider_col else ""
 
+                # Resolve warehouse_id for this row (optional)
+                row_warehouse = None
+                if warehouse_id_col:
+                    raw_wh_id = str(row.get(warehouse_id_col, "")).strip()
+                    if raw_wh_id and raw_wh_id != "" and not raw_wh_id.lower().startswith("opcional"):
+                        try:
+                            # Try to find warehouse by UUID
+                            row_warehouse_uuid = uuid.UUID(raw_wh_id)
+                            row_warehouse = session.query(ProcessORM).filter(
+                                ProcessORM.id_empresa == company_uuid,
+                                ProcessORM.id_proceso == row_warehouse_uuid,
+                                ProcessORM.tipo_proceso == "almacenamiento"
+                            ).first()
+                        except ValueError:
+                            # Try to find warehouse by exact name
+                            row_warehouse = session.query(ProcessORM).filter(
+                                ProcessORM.id_empresa == company_uuid,
+                                ProcessORM.nombre.ilike(raw_wh_id),
+                                ProcessORM.tipo_proceso == "almacenamiento"
+                            ).first()
+
+                if not row_warehouse:
+                    row_warehouse = warehouse
+
                 existing = get_product_by_id_use_case.execute(id_product)
 
                 if existing:
@@ -284,7 +311,7 @@ def bulk_upload_products(
                         "lead_time_days": lead_time_days or existing.lead_time_days,
                         "restorage": restorage or existing.restorage,
                         "limite_critico": limite_critico or existing.limite_critico,
-                        "warehouse_id": warehouse.id_proceso,
+                        "warehouse_id": row_warehouse.id_proceso,
                         "fds": fds or existing.fds,
                     }
                     update_product_use_case.execute(id_product, product_data)
@@ -300,7 +327,7 @@ def bulk_upload_products(
                         lead_time_days=lead_time_days,
                         restorage=restorage,
                         limite_critico=limite_critico,
-                        warehouse_id=warehouse.id_proceso,
+                        warehouse_id=row_warehouse.id_proceso,
                         company_id=company_uuid,
                         fds=fds,
                         fds_url=None

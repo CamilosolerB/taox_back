@@ -1,2 +1,6 @@
 .myenv/
 .env
+
+check_railway_roles.py
+test_complete_auth.py
+AUTHENTICATION_EXAMPLES.py
