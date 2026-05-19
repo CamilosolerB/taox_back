@@ -5,7 +5,11 @@ import shutil
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
 
-UPLOAD_DIR = "static/uploads/logos"
+# Check if absolute path /static/uploads exists (Railway volume mount)
+if os.path.exists("/static/uploads"):
+    UPLOAD_DIR = "/static/uploads/logos"
+else:
+    UPLOAD_DIR = "static/uploads/logos"
 
 # Create the upload directory if it does not exist
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -32,9 +36,14 @@ async def upload_logo(file: UploadFile = File(...)):
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             
+        # Ensure returned URL is always a clean relative web path starting with a single '/'
+        web_path = file_path.replace(os.sep, '/')
+        if not web_path.startswith('/'):
+            web_path = f"/{web_path}"
+            
         return {
             "message": "File uploaded successfully",
-            "url": f"/{file_path.replace(os.sep, '/')}"
+            "url": web_path
         }
     except Exception as e:
         raise HTTPException(

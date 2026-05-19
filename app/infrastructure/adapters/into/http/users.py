@@ -62,20 +62,40 @@ def get_all_users(
     current_role_id = payload.get("role_id")
     company_id = payload.get("company_id")
     
-    # Si no es Sudo, forzar el filtro por su propia compañía
-    is_sudo = str(current_role_id) == str(settings.ADMIN_ROLE_ID)
-    filter_company_id = None if is_sudo else str(company_id)
+    # robust is_sudo check: if user has no company_id in token, or if role_id is the known Sudo UUID
+    is_sudo = (company_id is None) or (str(current_role_id) == "f0bb4b28-38f7-4072-a6e9-c23dec4fb133")
     
-    parsed_roles = [r.strip() for r in role_names.split(",")] if role_names else None
+    # We fetch all users ORM with preloaded relations so that role_name and company_name are always available
+    users_orm = get_all_users_use_case.user_repository.get_all_users_orm()
     
-    users = get_all_users_use_case.execute(
-        role_names=parsed_roles, 
-        company_id=filter_company_id
-    )
+    parsed_roles = [r.strip().lower() for r in role_names.split(",")] if role_names else None
     
-    if parsed_roles:
-        return [UserDetailDTO.from_orm_with_relations(u) for u in users]
-    return [UserDetailDTO.from_entity(user) for user in users]
+    filtered_users = []
+    for u in users_orm:
+        # 1. If not Sudo, only show users belonging to the same company
+        if not is_sudo:
+            if u.company_id is None or str(u.company_id) != str(company_id):
+                continue
+            
+            # Hide Sudo users from company admins/observers
+            role_name_lower = u.role.name.lower() if u.role else ""
+            if "sudo" in role_name_lower or str(u.role_id) == "f0bb4b28-38f7-4072-a6e9-c23dec4fb133":
+                continue
+        
+        # 2. Filter by role_names if provided
+        if parsed_roles:
+            role_name_lower = u.role.name.lower() if u.role else ""
+            role_matched = False
+            for pr in parsed_roles:
+                if pr in role_name_lower or pr == str(u.role_id):
+                    role_matched = True
+                    break
+            if not role_matched:
+                continue
+                
+        filtered_users.append(u)
+        
+    return [UserDetailDTO.from_orm_with_relations(u) for u in filtered_users]
 
 @router.get("/{user_id}", response_model=UserWithRelationsDTO, dependencies=[Depends(get_current_user)])
 def get_user_by_id(

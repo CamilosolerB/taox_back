@@ -39,8 +39,19 @@ app.add_middleware(
 )
 
 import os
+# Ensure local static directory exists
 os.makedirs("static", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Mount /static/uploads to support Railway Persistent Volume with a local fallback
+if os.path.exists("/static/uploads"):
+    os.makedirs("/static/uploads/logos", exist_ok=True)
+    os.makedirs("/static/uploads/fds", exist_ok=True)
+    app.mount("/static/uploads", StaticFiles(directory="/static/uploads"), name="static_uploads")
+else:
+    os.makedirs("static/uploads/logos", exist_ok=True)
+    os.makedirs("static/uploads/fds", exist_ok=True)
+    app.mount("/static/uploads", StaticFiles(directory="static/uploads"), name="static_uploads")
 
 app.include_router(auth_router)
 app.include_router(users_router)
