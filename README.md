@@ -119,7 +119,7 @@ Para configurar y ejecutar el proyecto localmente, sigue los siguientes pasos:
     ```
 
     La API estará disponible en `http://127.0.0.1:8000`.
-    La documentación interactiva (Swagger UI) estará en `http://127.0.0.1:8000/docs`.
+    La documentación interactiva (Swagger UI) estará en `http://127.0.0.1:8000/docs`. Holaaa
 
 ## Uso de la API
 
