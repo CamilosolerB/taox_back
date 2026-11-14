@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Float, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from datetime import datetime
@@ -10,7 +10,7 @@ class StockLocationORM(Base):
     
     id_ubicacion = Column(Integer, ForeignKey("ubicacion.id_ubicacion"), primary_key=True)
     codigo_producto = Column(String(50), ForeignKey("products.id_product", onupdate="CASCADE"), primary_key=True)
-    cantidad = Column(Integer, nullable=False, default=0)
+    cantidad = Column(Float, nullable=False, default=0)
     id_empresa = Column(PG_UUID(as_uuid=True), ForeignKey("companies.id_company"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
@@ -27,7 +27,7 @@ class StockWarehouseORM(Base):
     __tablename__ = "stock_almacen"
     
     codigo_producto = Column(String(50), ForeignKey("products.id_product", onupdate="CASCADE"), primary_key=True)
-    cantidad = Column(Integer, nullable=False, default=0)
+    cantidad = Column(Float, nullable=False, default=0)
     id_empresa = Column(PG_UUID(as_uuid=True), ForeignKey("companies.id_company"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

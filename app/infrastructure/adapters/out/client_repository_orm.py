@@ -21,6 +21,7 @@ class ClientRepositoryORM(ClientRepository):
         return Client(
             codigo_cliente=orm.codigo_cliente,
             cliente=orm.cliente,
+            razon_social=orm.razon_social,
             telefono1=orm.telefono1,
             telefono2=orm.telefono2,
             contacto=orm.contacto,
@@ -39,6 +40,7 @@ class ClientRepositoryORM(ClientRepository):
         return ClientORM(
             codigo_cliente=entity.codigo_cliente,
             cliente=entity.cliente,
+            razon_social=entity.razon_social,
             telefono1=entity.telefono1,
             telefono2=entity.telefono2,
             contacto=entity.contacto,
@@ -99,6 +101,7 @@ class ClientRepositoryORM(ClientRepository):
             return None
         
         orm.cliente = client.cliente
+        orm.razon_social = client.razon_social
         orm.telefono1 = client.telefono1
         orm.telefono2 = client.telefono2
         orm.contacto = client.contacto

@@ -1,16 +1,28 @@
-from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import AliasChoices, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
-    STAGE: str = Field(..., env="STAGE")
-    DB_URL : str = Field(..., env="DB_URL")
-    JWT_SECRET_KEY: str = Field(..., env="JWT_SECRET_KEY")
-    ADMIN_ROLE_ID: str = Field(..., env="ADMIN_ROLE_ID")
-    OBSERVER_ROLE_ID: str = Field(..., env="OBSERVER_ROLE_ID")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+        case_sensitive=False,
+    )
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    STAGE: str = Field(validation_alias=AliasChoices("STAGE", "stage"))
+    DB_URL: str = Field(
+        validation_alias=AliasChoices("DB_URL", "db_url", "DB_URL_RAILWAY", "db_url_railway")
+    )
+    JWT_SECRET_KEY: str = Field(
+        validation_alias=AliasChoices("JWT_SECRET_KEY", "jwt_secret_key")
+    )
+    ADMIN_ROLE_ID: str = Field(
+        validation_alias=AliasChoices("ADMIN_ROLE_ID", "admin_role_id")
+    )
+    OBSERVER_ROLE_ID: str = Field(
+        validation_alias=AliasChoices("OBSERVER_ROLE_ID", "observer_role_id")
+    )
 
     def get_company_admin_role(self, company_id: str) -> str:
         """Generate company-specific admin role ID"""

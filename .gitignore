@@ -1,6 +1,9 @@
 .myenv/
 .env
+.env.production
 
 check_railway_roles.py
 test_complete_auth.py
 AUTHENTICATION_EXAMPLES.py
+CREDENTIALS.local.md
+ultima bd.xlsx

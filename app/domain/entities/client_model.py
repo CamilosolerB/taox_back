@@ -24,6 +24,7 @@ class Client:
         tipo_agua: str,
         cantidad_promedio_kg: float,
         id_empresa: str,
+        razon_social: Optional[str] = None,
         is_active: bool = True,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None
@@ -38,6 +39,7 @@ class Client:
         self.tipo_agua = tipo_agua
         self.cantidad_promedio_kg = cantidad_promedio_kg
         self.id_empresa = id_empresa
+        self.razon_social = razon_social
         self.is_active = is_active
         self.created_at = created_at
         self.updated_at = updated_at

@@ -11,6 +11,7 @@ class ClientORM(Base):
     
     codigo_cliente = Column(String(50), primary_key=True)
     cliente = Column(String(100), nullable=False)
+    razon_social = Column(String(100), nullable=True)
     telefono1 = Column(String(20), nullable=False)
     telefono2 = Column(String(20), nullable=True)
     contacto = Column(String(100), nullable=False)

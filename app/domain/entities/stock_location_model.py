@@ -16,7 +16,7 @@ class StockLocation:
         self,
         id_ubicacion: int,
         codigo_producto: str,
-        cantidad: int,
+        cantidad: float,
         id_empresa: str,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None

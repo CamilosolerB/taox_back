@@ -153,7 +153,7 @@ def create_stock_warehouse(
 @router.post("/stock-warehouse/{product_code}/increment")
 def increment_stock_warehouse(
     product_code: str,
-    quantity: int,
+    quantity: float,
     company_id: UUID,
     update_stock_use_case: UpdateStockWarehouseUseCase = Depends(get_update_stock_warehouse_use_case),
     current_user: Annotated[dict, Depends(require_admin)] = None
@@ -170,7 +170,7 @@ def increment_stock_warehouse(
 @router.post("/stock-warehouse/{product_code}/decrement")
 def decrement_stock_warehouse(
     product_code: str,
-    quantity: int,
+    quantity: float,
     company_id: UUID,
     update_stock_use_case: UpdateStockWarehouseUseCase = Depends(get_update_stock_warehouse_use_case),
     current_user: Annotated[dict, Depends(require_admin)] = None

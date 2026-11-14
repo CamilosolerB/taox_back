@@ -45,11 +45,11 @@ class StockWarehouseRepository(ABC):
         pass
     
     @abstractmethod
-    def increment_stock(self, product_code: str, quantity: int, company_id: str) -> Optional[StockWarehouse]:
+    def increment_stock(self, product_code: str, quantity: float, company_id: str) -> Optional[StockWarehouse]:
         """Incrementa el stock de un producto"""
         pass
     
     @abstractmethod
-    def decrement_stock(self, product_code: str, quantity: int, company_id: str) -> Optional[StockWarehouse]:
+    def decrement_stock(self, product_code: str, quantity: float, company_id: str) -> Optional[StockWarehouse]:
         """Decrementa el stock de un producto"""
         pass

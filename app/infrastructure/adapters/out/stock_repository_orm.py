@@ -186,7 +186,7 @@ class StockWarehouseRepositoryORM(StockWarehouseRepository):
         self.session.commit()
         return result > 0
     
-    def increment_stock(self, product_code: str, quantity: int, company_id: str) -> Optional[StockWarehouse]:
+    def increment_stock(self, product_code: str, quantity: float, company_id: str) -> Optional[StockWarehouse]:
         """Incrementa el stock"""
         stock = self.get_stock_by_product(product_code, company_id)
         if stock:
@@ -194,7 +194,7 @@ class StockWarehouseRepositoryORM(StockWarehouseRepository):
             return self.update_stock(product_code, stock)
         return None
     
-    def decrement_stock(self, product_code: str, quantity: int, company_id: str) -> Optional[StockWarehouse]:
+    def decrement_stock(self, product_code: str, quantity: float, company_id: str) -> Optional[StockWarehouse]:
         """Decrementa el stock"""
         stock = self.get_stock_by_product(product_code, company_id)
         if stock and stock.cantidad >= quantity:

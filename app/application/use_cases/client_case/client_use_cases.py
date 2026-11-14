@@ -26,7 +26,8 @@ class CreateClientUseCase:
         ciudad: str,
         tipo_agua: str,
         cantidad_promedio_kg: float,
-        id_empresa: str
+        id_empresa: str,
+        razon_social: str | None = None,
     ) -> Client:
         """Crea un nuevo cliente"""
         logger.info(f"Creando cliente: {codigo_cliente}")
@@ -41,7 +42,8 @@ class CreateClientUseCase:
             ciudad=ciudad,
             tipo_agua=tipo_agua,
             cantidad_promedio_kg=cantidad_promedio_kg,
-            id_empresa=id_empresa
+            id_empresa=id_empresa,
+            razon_social=razon_social,
         )
         
         created = self.client_repository.create_client(client)

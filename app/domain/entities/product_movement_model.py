@@ -13,7 +13,7 @@ class ProductMovement:
         codigo_producto: str,
         id_proceso_origen: UUID,
         id_proceso_destino: UUID,
-        cantidad: int,
+        cantidad: float,
         id_movimiento: int = None,
         tipo_movimiento: str = 'traslado', # 'entrada', 'salida', 'traslado'
         notas: str = None,

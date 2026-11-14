@@ -10,6 +10,7 @@ class ClientCreateDTO(BaseModel):
     """DTO para crear un cliente"""
     codigo_cliente: str = Field(..., min_length=1, max_length=50, description="Código único del cliente")
     cliente: str = Field(..., min_length=1, max_length=100, description="Nombre del cliente")
+    razon_social: Optional[str] = Field(None, max_length=100, description="Razón social")
     telefono1: str = Field(..., min_length=7, max_length=20, description="Teléfono principal")
     telefono2: Optional[str] = Field(None, min_length=7, max_length=20, description="Teléfono secundario")
     contacto: str = Field(..., min_length=1, max_length=100, description="Persona de contacto")
@@ -23,6 +24,7 @@ class ClientCreateDTO(BaseModel):
 class ClientUpdateDTO(BaseModel):
     """DTO para actualizar un cliente"""
     cliente: Optional[str] = Field(None, min_length=1, max_length=100)
+    razon_social: Optional[str] = Field(None, max_length=100)
     telefono1: Optional[str] = Field(None, min_length=7, max_length=20)
     telefono2: Optional[str] = Field(None, min_length=7, max_length=20)
     contacto: Optional[str] = Field(None, min_length=1, max_length=100)
@@ -37,6 +39,7 @@ class ClientDTO(BaseModel):
     """DTO para respuesta de cliente"""
     codigo_cliente: str
     cliente: str
+    razon_social: Optional[str] = None
     telefono1: str
     telefono2: Optional[str]
     contacto: str

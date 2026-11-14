@@ -22,7 +22,7 @@ class CreateStockLocationUseCase:
         self,
         id_ubicacion: int,
         codigo_producto: str,
-        cantidad: int,
+        cantidad: float,
         id_empresa: str
     ) -> StockLocation:
         """Crea un nuevo stock en ubicación"""
@@ -104,7 +104,7 @@ class CreateStockWarehouseUseCase:
     def execute(
         self,
         codigo_producto: str,
-        cantidad: int,
+        cantidad: float,
         id_empresa: str
     ) -> StockWarehouse:
         """Crea un stock en almacén"""
@@ -155,7 +155,7 @@ class UpdateStockWarehouseUseCase:
             raise Exception(f"Could not update stock")
         return updated
     
-    def increment(self, product_code: str, quantity: int, company_id: str) -> StockWarehouse:
+    def increment(self, product_code: str, quantity: float, company_id: str) -> StockWarehouse:
         """Incrementa el stock"""
         logger.info(f"Incrementando stock: {product_code} +{quantity}")
         stock = self.stock_warehouse_repository.increment_stock(product_code, quantity, company_id)
@@ -163,7 +163,7 @@ class UpdateStockWarehouseUseCase:
             raise Exception(f"Could not increment stock")
         return stock
     
-    def decrement(self, product_code: str, quantity: int, company_id: str) -> StockWarehouse:
+    def decrement(self, product_code: str, quantity: float, company_id: str) -> StockWarehouse:
         """Decrementa el stock"""
         import uuid
         logger.info(f"Decrementando stock: {product_code} -{quantity}")

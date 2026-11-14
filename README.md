@@ -112,6 +112,10 @@ Para configurar y ejecutar el proyecto localmente, sigue los siguientes pasos:
     alembic upgrade head
     ```
 
+    En una base nueva y vacía, esto crea el esquema. No ejecutes la cadena sobre
+    una base que aún pueda contener datos: la revisión `0ee3ceb44209` vacía
+    tablas de inventario y movimientos con `TRUNCATE ... CASCADE`.
+
 6.  **Iniciar el servidor:**
 
     ```bash
@@ -120,6 +124,71 @@ Para configurar y ejecutar el proyecto localmente, sigue los siguientes pasos:
 
     La API estará disponible en `http://127.0.0.1:8000`.
     La documentación interactiva (Swagger UI) estará en `http://127.0.0.1:8000/docs`. Holaaa
+
+## Recuperación de datos desde Excel
+
+`ultima bd.xlsx` es una fuente de importación parcial, no un respaldo completo de
+PostgreSQL. Primero ejecuta la vista previa; no conecta ni escribe en la base:
+
+```bash
+python scripts/import_latest_workbook.py
+```
+
+La importación reconoce productos, cantidades, ubicaciones físicas,
+proveedores, relaciones proveedor-producto y clientes. Las hojas de mano de
+obra, depreciación, FCA, producto terminado, órdenes de producción y CIF no
+tienen tablas equivalentes en el modelo actual y se conservan únicamente en el
+Excel. Las cantidades de inventario admiten decimales.
+
+Para aplicar la carga, configura `DB_URL` para apuntar a la base vacía y pasa la
+identidad real de la compañía; esos datos no están en el Excel:
+
+```bash
+python scripts/import_latest_workbook.py --apply `
+  --accept-name-priority `
+  --company-name "Nombre de la compañía" `
+  --company-nit "NIT" `
+  --company-address "Dirección" `
+  --company-phone "Teléfono" `
+  --company-email "correo@dominio.com"
+```
+
+Después de migrar el esquema y cargar los datos, crea un administrador global
+con un correo configurado. El script genera una contraseña aleatoria y la deja
+en `CREDENTIALS.local.md`, excluido por `.gitignore`:
+
+```bash
+$env:TAOX_ADMIN_EMAIL = "admin@dominio.com"
+python create_sudo.py
+```
+
+El Excel no contiene usuarios ni hashes de contraseña. Si no se recupera una
+copia de la base anterior, hay que crear cuentas nuevas y establecer nuevas
+contraseñas; las contraseñas hash no se pueden descifrar.
+
+## Copiar la base existente a Railway
+
+Para conservar usuarios (incluidos sus hashes), roles, productos, movimientos y
+el resto de los registros, el script de copia usa la base de `.env` como origen
+y la conexión de `.env.production` como destino. Mantén ambos archivos fuera de
+Git. Primero ejecuta la inspección de solo lectura:
+
+```bash
+python scripts/migrate_source_to_railway.py
+```
+
+La copia solo se permite si el origen está en la revisión conocida y Railway
+está vacío (o ya tiene el esquema de esta versión sin registros). El script crea
+el esquema en Railway, copia filas sin cambiar IDs ni hashes, restablece las
+secuencias y verifica conteos y huellas de datos. No modifica la base origen.
+Para iniciar la copia explícitamente:
+
+```bash
+python scripts/migrate_source_to_railway.py --apply
+```
+
+No ejecutes `alembic upgrade head` directamente en la base origen: una migración
+histórica contiene `TRUNCATE ... CASCADE`.
 
 ## Uso de la API
 

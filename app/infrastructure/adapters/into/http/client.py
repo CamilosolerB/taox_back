@@ -79,6 +79,7 @@ def create_client(
         return create_client_use_case.execute(
             codigo_cliente=client_dto.codigo_cliente,
             cliente=client_dto.cliente,
+            razon_social=client_dto.razon_social,
             telefono1=client_dto.telefono1,
             telefono2=client_dto.telefono2,
             contacto=client_dto.contacto,
