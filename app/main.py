@@ -19,6 +19,7 @@ from app.infrastructure.adapters.into.http.chemical_stocks import router as stoc
 from app.infrastructure.adapters.into.http.stock_alerts import router as alerts_router
 from app.infrastructure.adapters.into.http.dashboard import router as dashboard_router
 from app.infrastructure.adapters.into.http.uploads import router as uploads_router
+from app.infrastructure.adapters.into.http.copilot import router as copilot_router
 from app.core.middleware.security_headers import SecurityHeadersMiddleware, NoCacheMiddleware
 
 app = FastAPI(title="TAOX API")
@@ -73,6 +74,7 @@ app.include_router(stocks_router)
 app.include_router(alerts_router)
 app.include_router(dashboard_router)
 app.include_router(uploads_router)
+app.include_router(copilot_router)
 
 @app.get("/")
 async def root():

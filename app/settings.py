@@ -24,6 +24,50 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("OBSERVER_ROLE_ID", "observer_role_id")
     )
 
+    # --- Copiloto IA (MiniMax) ---
+    MINIMAX_API_KEY: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("MINIMAX_API_KEY", "minimax_api_key"),
+    )
+    MINIMAX_MODEL: str = Field(
+        default="MiniMax-M3.1-Flash",
+        validation_alias=AliasChoices("MINIMAX_MODEL", "minimax_model"),
+    )
+    MINIMAX_BASE_URL: str = Field(
+        default="https://api.minimax.io/v1",
+        validation_alias=AliasChoices("MINIMAX_BASE_URL", "minimax_base_url"),
+    )
+    COPILOT_LLM_PROVIDER: str = Field(
+        default="minimax",
+        validation_alias=AliasChoices("COPILOT_LLM_PROVIDER", "copilot_llm_provider"),
+    )
+    COPILOT_MAX_TOKENS: int = Field(
+        default=1024,
+        validation_alias=AliasChoices("COPILOT_MAX_TOKENS", "copilot_max_tokens"),
+    )
+    COPILOT_TIMEOUT_SECONDS: int = Field(
+        default=60,
+        validation_alias=AliasChoices("COPILOT_TIMEOUT_SECONDS", "copilot_timeout_seconds"),
+    )
+
+    # --- Canal Telegram ---
+    TELEGRAM_BOT_TOKEN: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("TELEGRAM_BOT_TOKEN", "telegram_bot_token"),
+    )
+    TELEGRAM_BOT_USERNAME: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("TELEGRAM_BOT_USERNAME", "telegram_bot_username"),
+    )
+    TELEGRAM_BOT_LINK: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("TELEGRAM_BOT_LINK", "telegram_bot_link"),
+    )
+    TELEGRAM_WEBHOOK_SECRET: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("TELEGRAM_WEBHOOK_SECRET", "telegram_webhook_secret"),
+    )
+
     def get_company_admin_role(self, company_id: str) -> str:
         """Generate company-specific admin role ID"""
         return f"company_admin_{company_id}"

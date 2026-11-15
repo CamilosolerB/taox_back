@@ -11,3 +11,9 @@ from .process_orm import ProcessORM
 from .product_movement_orm import ProductMovementORM
 from .chemical_stock_orm import ChemicalStockORM
 from .stock_alert_orm import StockAlertORM
+from .copilot_conversation_orm import CopilotConversationORM
+from .copilot_message_orm import CopilotMessageORM
+from .telegram_account_orm import TelegramAccountORM
+from .telegram_link_code_orm import TelegramLinkCodeORM
+from .telegram_update_orm import TelegramUpdateORM
+from .replenishment_draft_orm import ReplenishmentDraftORM

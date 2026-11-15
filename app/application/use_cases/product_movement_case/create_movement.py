@@ -12,7 +12,6 @@ from app.domain.entities.stock_alert_model import StockAlert
 from app.domain.ports.out.chemical_stock_repository import ChemicalStockRepository
 from app.domain.entities.chemical_stock_model import ChemicalStock
 from app.application.dto.product_movement_dto import ProductMovementCreateDTO
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -26,13 +25,15 @@ class CreateMovementUseCase:
         stock_warehouse_repository: StockWarehouseRepository,
         product_repository: ProductRepository,
         stock_alert_repository: StockAlertRepository,
-        chemical_stock_repository: ChemicalStockRepository
+        chemical_stock_repository: ChemicalStockRepository,
+        alert_notifier=None
     ):
         self.movement_repository = movement_repository
         self.stock_warehouse_repository = stock_warehouse_repository
         self.product_repository = product_repository
         self.stock_alert_repository = stock_alert_repository
         self.chemical_stock_repository = chemical_stock_repository
+        self.alert_notifier = alert_notifier
     
     def execute(self, movement_dto: ProductMovementCreateDTO) -> ProductMovement:
         """
@@ -224,8 +225,23 @@ class CreateMovementUseCase:
                 descripcion=descripcion
             )
             
-            self.stock_alert_repository.create_alert(alert)
+            created_alert = self.stock_alert_repository.create_alert(alert)
             logger.info(f"Alerta de {tipo_alerta} creada para {movement_dto.codigo_producto}")
-        
+            self._notify_alert(created_alert or alert)
+
         except Exception as e:
             logger.error(f"Error creando alerta: {str(e)}")
+
+    def _notify_alert(self, alert: StockAlert) -> None:
+        """
+        Notifica la alerta recién creada al copiloto (p.ej. Telegram).
+
+        Nunca debe interrumpir la creación del movimiento: cualquier fallo se registra
+        y se continúa.
+        """
+        if not self.alert_notifier:
+            return
+        try:
+            self.alert_notifier.execute(alert)
+        except Exception as e:
+            logger.error(f"Error notificando alerta al copiloto: {str(e)}")

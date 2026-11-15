@@ -24,6 +24,8 @@ from app.domain.ports.out.stock_alert_repository import StockAlertRepository
 
 from app.infrastructure.config.chemical_stock_dependencies import get_stock_repository
 from app.domain.ports.out.chemical_stock_repository import ChemicalStockRepository
+from app.infrastructure.config.copilot_dependencies import get_notify_stock_alert_use_case
+from app.application.use_cases.copilot_case import NotifyStockAlertUseCase
 
 
 def get_movement_repository(session: Session = Depends(get_session)) -> ProductMovementRepository:
@@ -64,7 +66,8 @@ def get_create_movement_use_case(
     stock_warehouse_repository: StockWarehouseRepository = Depends(get_stock_warehouse_repository),
     product_repository: ProductRepository = Depends(get_product_repository),
     alert_repository: StockAlertRepository = Depends(get_stock_alert_repository),
-    chemical_stock_repository: ChemicalStockRepository = Depends(get_stock_repository)
+    chemical_stock_repository: ChemicalStockRepository = Depends(get_stock_repository),
+    alert_notifier: NotifyStockAlertUseCase = Depends(get_notify_stock_alert_use_case)
 ) -> CreateMovementUseCase:
     """Inyecta el caso de uso para crear un movimiento con lógica de alertas dependiente del almacen general"""
     return CreateMovementUseCase(
@@ -72,7 +75,8 @@ def get_create_movement_use_case(
         stock_warehouse_repository, 
         product_repository, 
         alert_repository,
-        chemical_stock_repository
+        chemical_stock_repository,
+        alert_notifier
     )
 
 
