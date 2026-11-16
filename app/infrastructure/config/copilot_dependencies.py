@@ -75,19 +75,37 @@ def get_copilot_product_repository(session: Session = Depends(get_session)) -> P
 
 # --- Adaptadores externos ---
 def get_llm_provider() -> LlmProvider:
-    """Selecciona el proveedor LLM según configuración; cae a stub si no hay credenciales."""
-    provider = (settings.COPILOT_LLM_PROVIDER or "minimax").lower()
-    if provider == "stub" or not settings.MINIMAX_API_KEY:
-        if provider != "stub":
-            logger.warning("MINIMAX_API_KEY no configurada; se usa el proveedor LLM de prueba")
+    """Selecciona el proveedor LLM OpenAI-compatible según configuración.
+
+    Prioriza Groq si hay GROQ_API_KEY; si no, MiniMax; si no hay ninguna key
+    (o COPILOT_LLM_PROVIDER=stub), usa el proveedor de prueba sin costo.
+    """
+    provider = (settings.COPILOT_LLM_PROVIDER or "").lower()
+    if provider == "stub":
         return StubLlmProvider(model=settings.MINIMAX_MODEL)
-    return MiniMaxLlmProvider(
-        api_key=settings.MINIMAX_API_KEY,
-        model=settings.MINIMAX_MODEL,
-        base_url=settings.MINIMAX_BASE_URL,
-        max_tokens=settings.COPILOT_MAX_TOKENS,
-        timeout=settings.COPILOT_TIMEOUT_SECONDS,
-    )
+
+    if settings.GROQ_API_KEY:
+        return MiniMaxLlmProvider(
+            api_key=settings.GROQ_API_KEY,
+            model=settings.GROQ_MODEL,
+            base_url=settings.GROQ_BASE_URL,
+            max_tokens=settings.COPILOT_MAX_TOKENS,
+            timeout=settings.COPILOT_TIMEOUT_SECONDS,
+            provider_name="groq",
+        )
+
+    if settings.MINIMAX_API_KEY:
+        return MiniMaxLlmProvider(
+            api_key=settings.MINIMAX_API_KEY,
+            model=settings.MINIMAX_MODEL,
+            base_url=settings.MINIMAX_BASE_URL,
+            max_tokens=settings.COPILOT_MAX_TOKENS,
+            timeout=settings.COPILOT_TIMEOUT_SECONDS,
+            provider_name="minimax",
+        )
+
+    logger.warning("Sin API key de LLM configurada; se usa el proveedor LLM de prueba")
+    return StubLlmProvider(model=settings.MINIMAX_MODEL)
 
 
 def get_notification_channel() -> NotificationChannel:

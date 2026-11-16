@@ -24,16 +24,18 @@ class MiniMaxLlmProvider(LlmProvider):
         base_url: str = "https://api.minimax.io/v1",
         max_tokens: int = 1024,
         timeout: int = 60,
+        provider_name: str = "minimax",
     ):
         self.api_key = api_key
         self.model = model
         self.base_url = base_url.rstrip("/")
         self.max_tokens = max_tokens
         self.timeout = timeout
+        self._provider_name = provider_name
 
     @property
     def name(self) -> str:
-        return "minimax"
+        return self._provider_name
 
     def generate(self, system_prompt: str, messages: List[Dict[str, str]]) -> LlmResult:
         if not self.api_key:
@@ -62,7 +64,7 @@ class MiniMaxLlmProvider(LlmProvider):
 
         if response.status_code >= 400:
             logger.error(
-                f"MiniMax respondió {response.status_code}: {response.text[:500]}"
+                f"{self.name} respondió {response.status_code}: {response.text[:500]}"
             )
             raise LlmProviderError(
                 f"Proveedor LLM respondió con estado {response.status_code}"

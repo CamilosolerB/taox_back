@@ -37,6 +37,21 @@ class Settings(BaseSettings):
         default="https://api.minimax.io/v1",
         validation_alias=AliasChoices("MINIMAX_BASE_URL", "minimax_base_url"),
     )
+
+    # --- Copiloto IA (proveedor OpenAI-compatible alternativo: Groq) ---
+    GROQ_API_KEY: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("GROQ_API_KEY", "groq_api_key"),
+    )
+    GROQ_MODEL: str = Field(
+        default="openai/gpt-oss-120b",
+        validation_alias=AliasChoices("GROQ_MODEL", "groq_model"),
+    )
+    GROQ_BASE_URL: str = Field(
+        default="https://api.groq.com/openai/v1",
+        validation_alias=AliasChoices("GROQ_BASE_URL", "groq_base_url"),
+    )
+
     COPILOT_LLM_PROVIDER: str = Field(
         default="minimax",
         validation_alias=AliasChoices("COPILOT_LLM_PROVIDER", "copilot_llm_provider"),
