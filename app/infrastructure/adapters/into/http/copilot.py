@@ -2,10 +2,13 @@
 HTTP endpoints del Copiloto IA (chat interno + integración Telegram)
 """
 import logging
+import re
+from pathlib import Path
 from typing import Dict, List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi.responses import FileResponse
 
 from app.settings import settings
 from app.core.middleware.auth_middleware import get_current_user
@@ -52,6 +55,40 @@ from app.infrastructure.config.copilot_dependencies import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/copilot", tags=["copilot"])
+
+_REPORT_FILENAME_PATTERN = re.compile(
+    r"(?:inventario|alertas|movimientos)-[0-9a-f]{8}\.(?:pdf|xlsx)"
+)
+
+
+def _reports_directory() -> Path:
+    """Return the report directory, including Railway's persistent volume path."""
+    if Path("/static/uploads").exists():
+        return Path("/static/uploads/reports")
+    return Path("static/uploads/reports")
+
+
+@router.get("/reports/{filename}", include_in_schema=False)
+def download_report(filename: str):
+    """Serve generated reports as downloads, not as inline browser documents."""
+    if not _REPORT_FILENAME_PATTERN.fullmatch(filename):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reporte no encontrado")
+
+    report_path = _reports_directory() / filename
+    if not report_path.is_file():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reporte no encontrado")
+
+    media_type = (
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        if report_path.suffix == ".xlsx"
+        else "application/pdf"
+    )
+    return FileResponse(
+        path=report_path,
+        media_type=media_type,
+        filename=filename,
+        headers={"Cache-Control": "private, no-store"},
+    )
 
 
 def _company_and_user(payload: Dict) -> (str, str):
