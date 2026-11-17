@@ -29,22 +29,42 @@ logger = logging.getLogger(__name__)
 ACTION_BLOCK_PATTERN = re.compile(r"```json\s*(\{.*?\})\s*```", re.DOTALL)
 
 SYSTEM_PROMPT_TEMPLATE = """\
-Eres el copiloto de TAOX, un asistente experto en gestión de inventario y \
-abastecimiento para plantas de tratamiento de agua. Ayudas a los administradores \
-a interpretar alertas de stock, priorizar reposiciones y preparar borradores de \
-reabastecimiento para revisión humana.
+Eres el asistente de negocio de TAOX para gerentes y administradores de plantas \
+de tratamiento de agua. Los ayudas a entender su inventario, priorizar \
+reposiciones y preparar información para tomar decisiones.
 
-Reglas:
-- Responde en español, de forma clara y breve.
-- Basa tus respuestas en el contexto proporcionado. No inventes datos.
-- Nunca ejecutes compras ni movimientos de inventario: solo propones borradores \
-que un humano debe revisar.
-- Si el usuario pide preparar una reposición, responde con tu recomendación y, \
-además, incluye EXACTAMENTE un bloque JSON con este formato:
+Cómo debes responder:
+- Habla en español, con un tono profesional, claro y directo, pensado para \
+gerentes y administradores, NO para programadores.
+- NUNCA menciones aspectos técnicos: nada de JSON, código, APIs, bases de datos, \
+tablas, identificadores internos ni "bloques". No expliques cómo funcionas.
+- Sé ordenado y conciso ("cuadriculado"): usa títulos cortos, viñetas y, cuando \
+ayude, tablas en formato Markdown.
+- No inventes datos: básate en el contexto y en la información disponible.
+- Nunca ejecutes compras ni cambios de inventario: solo recomiendas y propones \
+borradores que una persona debe revisar.
+
+Acciones disponibles (úsalas solo si el usuario lo pide y sin mencionarlas):
+
+1) Borrador de reposición. Si el usuario pide preparar una reposición, además de \
+tu recomendación incluye EXACTAMENTE un bloque como este:
 
 ```json
 {{"action": "replenishment_draft", "codigo_producto": "<codigo>", "cantidad_sugerida": <numero>, "unidad_medida": "<unidad>", "proveedor_sugerido": "<proveedor o null>", "notas": "<justificacion breve>"}}
 ```
+
+2) Reporte descargable. Si el usuario pide un reporte, informe o exportable \
+(Excel o PDF), incluye EXACTAMENTE un bloque como este. El sistema generará el \
+archivo y añadirá el enlace de descarga; tú NO escribas el enlace:
+
+```json
+{{"action": "report", "tipo": "<inventario|alertas|movimientos>", "formato": "<excel|pdf>", "titulo": "<titulo breve del reporte>"}}
+```
+
+Tipos de reporte disponibles:
+- inventario: catálogo de productos con precios, unidades y límites críticos.
+- alertas: alertas de stock activas.
+- movimientos: movimientos de productos registrados.
 
 Contexto de la empresa:
 {context}
@@ -61,12 +81,14 @@ class SendChatMessageUseCase:
         product_repository: ProductRepository,
         replenishment_repository: ReplenishmentRepository,
         llm_provider: LlmProvider,
+        report_use_case: Optional[object] = None,
     ):
         self.copilot_repository = copilot_repository
         self.alert_repository = alert_repository
         self.product_repository = product_repository
         self.replenishment_repository = replenishment_repository
         self.llm_provider = llm_provider
+        self.report_use_case = report_use_case
 
     def execute(
         self,
@@ -116,6 +138,9 @@ class SendChatMessageUseCase:
 
         visible_reply, action = self._split_action(reply_text)
         draft = self._maybe_create_draft(action, conversation, user_id)
+        report_note = self._maybe_generate_report(action, conversation)
+        if report_note:
+            visible_reply = f"{visible_reply}\n\n{report_note}".strip()
 
         self.copilot_repository.add_message(
             CopilotMessage(
@@ -226,7 +251,7 @@ class SendChatMessageUseCase:
             action = json.loads(match.group(1))
         except json.JSONDecodeError:
             return text.strip(), None
-        if not isinstance(action, dict) or action.get("action") != "replenishment_draft":
+        if not isinstance(action, dict) or "action" not in action:
             return text.strip(), None
         return visible or text.strip(), action
 
@@ -234,6 +259,8 @@ class SendChatMessageUseCase:
         self, action: Optional[dict], conversation: CopilotConversation, user_id: Optional[str]
     ) -> Optional[ReplenishmentDraft]:
         if not action:
+            return None
+        if action.get("action") != "replenishment_draft":
             return None
 
         codigo = action.get("codigo_producto") or conversation.codigo_producto
@@ -259,6 +286,32 @@ class SendChatMessageUseCase:
             return None
 
         return self.replenishment_repository.create_draft(draft)
+
+    def _maybe_generate_report(
+        self, action: Optional[dict], conversation: CopilotConversation
+    ) -> Optional[str]:
+        if not action or action.get("action") != "report":
+            return None
+        if self.report_use_case is None:
+            logger.warning("Se solicitó un reporte pero no hay generador configurado")
+            return None
+
+        try:
+            result = self.report_use_case.execute(
+                company_id=str(conversation.id_empresa),
+                tipo=action.get("tipo"),
+                formato=action.get("formato"),
+                titulo=action.get("titulo"),
+            )
+        except Exception as exc:
+            logger.error(f"No se pudo generar el reporte: {exc}")
+            return "No pude generar el reporte solicitado. Intenta de nuevo."
+
+        etiqueta = "Excel" if result["formato"] == "excel" else "PDF"
+        return (
+            f"**Reporte listo:** {result['titulo']}\n\n"
+            f"[Descargar en {etiqueta}]({result['url']})"
+        )
 
     @staticmethod
     def _now():

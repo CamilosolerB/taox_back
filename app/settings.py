@@ -64,6 +64,10 @@ class Settings(BaseSettings):
         default=60,
         validation_alias=AliasChoices("COPILOT_TIMEOUT_SECONDS", "copilot_timeout_seconds"),
     )
+    PUBLIC_BASE_URL: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("PUBLIC_BASE_URL", "public_base_url"),
+    )
 
     # --- Canal Telegram ---
     TELEGRAM_BOT_TOKEN: str | None = Field(

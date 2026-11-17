@@ -13,6 +13,7 @@ from app.infrastructure.adapters.out.telegram_repository_orm import TelegramORMR
 from app.infrastructure.adapters.out.replenishment_repository_orm import ReplenishmentORMRepository
 from app.infrastructure.adapters.out.stock_alert_repository_orm import StockAlertORMRepository
 from app.infrastructure.adapters.out.product_orm_repository import ProductORMRepository
+from app.infrastructure.adapters.out.product_movement_repository_orm import ProductMovementORMRepository
 from app.infrastructure.adapters.out.minimax_llm_provider import MiniMaxLlmProvider
 from app.infrastructure.adapters.out.stub_llm_provider import StubLlmProvider
 from app.infrastructure.adapters.out.telegram_channel import TelegramChannel
@@ -22,11 +23,13 @@ from app.domain.ports.out.telegram_repository import TelegramRepository
 from app.domain.ports.out.replenishment_repository import ReplenishmentRepository
 from app.domain.ports.out.stock_alert_repository import StockAlertRepository
 from app.domain.ports.out.product_repository import ProductRepository
+from app.domain.ports.out.product_movement_repository import ProductMovementRepository
 from app.domain.ports.out.llm_provider import LlmProvider
 from app.domain.ports.out.notification_channel import NotificationChannel
 
 from app.application.use_cases.copilot_case import (
     SendChatMessageUseCase,
+    GenerateReportUseCase,
     ProcessTelegramUpdateUseCase,
     NotifyStockAlertUseCase,
     CreateLinkCodeUseCase,
@@ -73,6 +76,12 @@ def get_copilot_product_repository(session: Session = Depends(get_session)) -> P
     return ProductORMRepository(session)
 
 
+def get_copilot_movement_repository(
+    session: Session = Depends(get_session),
+) -> ProductMovementRepository:
+    return ProductMovementORMRepository(session)
+
+
 # --- Adaptadores externos ---
 def get_llm_provider() -> LlmProvider:
     """Selecciona el proveedor LLM OpenAI-compatible según configuración.
@@ -116,12 +125,26 @@ def get_notification_channel() -> NotificationChannel:
 
 
 # --- Use cases ---
+def get_generate_report_use_case(
+    product_repository: ProductRepository = Depends(get_copilot_product_repository),
+    alert_repository: StockAlertRepository = Depends(get_copilot_alert_repository),
+    movement_repository: ProductMovementRepository = Depends(get_copilot_movement_repository),
+) -> GenerateReportUseCase:
+    return GenerateReportUseCase(
+        product_repository=product_repository,
+        alert_repository=alert_repository,
+        movement_repository=movement_repository,
+        public_base_url=settings.PUBLIC_BASE_URL,
+    )
+
+
 def get_send_chat_message_use_case(
     copilot_repository: CopilotRepository = Depends(get_copilot_repository),
     alert_repository: StockAlertRepository = Depends(get_copilot_alert_repository),
     product_repository: ProductRepository = Depends(get_copilot_product_repository),
     replenishment_repository: ReplenishmentRepository = Depends(get_replenishment_repository),
     llm_provider: LlmProvider = Depends(get_llm_provider),
+    report_use_case: GenerateReportUseCase = Depends(get_generate_report_use_case),
 ) -> SendChatMessageUseCase:
     return SendChatMessageUseCase(
         copilot_repository,
@@ -129,6 +152,7 @@ def get_send_chat_message_use_case(
         product_repository,
         replenishment_repository,
         llm_provider,
+        report_use_case=report_use_case,
     )
 
 

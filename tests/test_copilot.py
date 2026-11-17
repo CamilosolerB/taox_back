@@ -20,9 +20,11 @@ from app.domain.entities.copilot_models import (
     TelegramLinkCode,
 )
 from app.domain.entities.stock_alert_model import StockAlert
+from app.domain.entities.product_model import Product
 from app.domain.exceptions.copilot_exceptions import LlmProviderError
 from app.application.use_cases.copilot_case import (
     SendChatMessageUseCase,
+    GenerateReportUseCase,
     ProcessTelegramUpdateUseCase,
     NotifyStockAlertUseCase,
     CreateLinkCodeUseCase,
@@ -171,8 +173,25 @@ class FakeAlertRepository:
 
 
 class FakeProductRepository:
+    def __init__(self, products: Optional[List[Product]] = None):
+        self.products = products or []
+
     def get_product_by_id(self, id_product: str):
+        for p in self.products:
+            if p.id_product == id_product:
+                return p
         return None
+
+    def get_products_by_company_id(self, company_id: str):
+        return [p for p in self.products if str(p.company_id) == str(company_id)]
+
+
+class FakeMovementRepository:
+    def __init__(self, movements: Optional[list] = None):
+        self.movements = movements or []
+
+    def get_all_movements(self, company_id: str):
+        return list(self.movements)
 
 
 class FakeLlmProvider:
@@ -211,13 +230,14 @@ class FakeChannel:
         return self.deliver
 
 
-def make_chat_use_case(llm=None, alerts=None, replenishment=None):
+def make_chat_use_case(llm=None, alerts=None, replenishment=None, report_use_case=None):
     return SendChatMessageUseCase(
         copilot_repository=FakeCopilotRepository(),
         alert_repository=FakeAlertRepository(alerts),
         product_repository=FakeProductRepository(),
         replenishment_repository=replenishment or FakeReplenishmentRepository(),
         llm_provider=llm or FakeLlmProvider(),
+        report_use_case=report_use_case,
     )
 
 
@@ -470,3 +490,70 @@ def test_notify_alert_disabled_channel_returns_zero():
     use_case = NotifyStockAlertUseCase(copilot_repo, telegram_repo, channel)
 
     assert use_case.execute(_make_alert()) == 0
+
+
+# --------------------------------------------------------------------------- #
+# Reportes
+# --------------------------------------------------------------------------- #
+def _make_report_use_case(tmp_path):
+    use_case = GenerateReportUseCase(
+        product_repository=FakeProductRepository(
+            [
+                Product(
+                    id_product="A0001",
+                    name="Cloro",
+                    generic_name="Hipoclorito de sodio",
+                    price=10,
+                    unit_measure="kg",
+                    unit_price=12,
+                    min_unit_price=8,
+                    lead_time_days=5,
+                    restorage="manual",
+                    limite_critico=10,
+                    company_id=COMPANY_A,
+                )
+            ]
+        ),
+        alert_repository=FakeAlertRepository([_make_alert()]),
+        movement_repository=FakeMovementRepository(),
+    )
+    use_case._reports_dir = lambda: str(tmp_path)
+    return use_case
+
+
+def test_generate_report_creates_excel_file(tmp_path):
+    use_case = _make_report_use_case(tmp_path)
+
+    result = use_case.execute(company_id=COMPANY_A, tipo="inventario", formato="excel")
+
+    assert result["formato"] == "excel"
+    assert result["rows"] == 1
+    assert result["url"].startswith("/static/uploads/reports/")
+    assert (tmp_path / result["filename"]).exists()
+
+
+def test_generate_report_rejects_unknown_type(tmp_path):
+    use_case = _make_report_use_case(tmp_path)
+
+    with pytest.raises(ValueError):
+        use_case.execute(company_id=COMPANY_A, tipo="desconocido", formato="excel")
+
+
+def test_chat_report_action_appends_download_link(tmp_path):
+    action = (
+        "Claro, aquí tienes el reporte solicitado.\n"
+        '```json\n{"action": "report", "tipo": "alertas", "formato": "pdf", '
+        '"titulo": "Alertas de stock"}\n```'
+    )
+    use_case = make_chat_use_case(
+        llm=FakeLlmProvider(content=action),
+        report_use_case=_make_report_use_case(tmp_path),
+    )
+
+    result = use_case.execute(
+        company_id=COMPANY_A, user_id=USER_A, message="genera un reporte de alertas"
+    )
+
+    assert "```json" not in result.reply
+    assert "Reporte listo" in result.reply
+    assert "/static/uploads/reports/" in result.reply
