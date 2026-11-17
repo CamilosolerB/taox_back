@@ -528,32 +528,25 @@ def test_generate_report_creates_excel_file(tmp_path):
 
     assert result["formato"] == "excel"
     assert result["rows"] == 1
-    assert result["url"].startswith("/copilot/reports/")
+    assert result["url"].startswith("/static/uploads/reports/")
     assert (tmp_path / result["filename"]).exists()
 
 
-def test_report_download_returns_attachment(tmp_path, monkeypatch):
-    from app.infrastructure.adapters.into.http import copilot
+def test_static_generated_report_is_downloaded_as_attachment(tmp_path):
+    import asyncio
+    from app.infrastructure.adapters.into.http.report_downloads import DownloadableReportStaticFiles
 
     filename = "inventario-1234abcd.pdf"
     (tmp_path / filename).write_bytes(b"pdf content")
-    monkeypatch.setattr(copilot, "_reports_directory", lambda: tmp_path)
+    static_files = DownloadableReportStaticFiles(directory=str(tmp_path))
 
-    response = copilot.download_report(filename)
+    response = asyncio.run(
+        static_files.get_response(filename, {"method": "GET", "headers": []})
+    )
 
-    assert response.media_type == "application/pdf"
+    assert response.status_code == 200
     assert response.headers["content-disposition"] == f'attachment; filename="{filename}"'
     assert response.headers["cache-control"] == "private, no-store"
-
-
-def test_report_download_rejects_unsafe_filename():
-    from fastapi import HTTPException
-    from app.infrastructure.adapters.into.http import copilot
-
-    with pytest.raises(HTTPException) as error:
-        copilot.download_report("../../secrets.pdf")
-
-    assert error.value.status_code == 404
 
 
 def test_generate_report_rejects_unknown_type(tmp_path):
@@ -580,4 +573,4 @@ def test_chat_report_action_appends_download_link(tmp_path):
 
     assert "```json" not in result.reply
     assert "Reporte listo" in result.reply
-    assert "/copilot/reports/" in result.reply
+    assert "/static/uploads/reports/" in result.reply

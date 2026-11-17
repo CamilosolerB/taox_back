@@ -176,7 +176,7 @@ class GenerateReportUseCase:
         with open(os.path.join(directory, filename), "wb") as fh:
             fh.write(buffer.getvalue())
 
-        rel_path = f"/copilot/reports/{filename}"
+        rel_path = f"/static/uploads/reports/{filename}"
         if self.public_base_url:
             return f"{self.public_base_url}{rel_path}"
         return rel_path

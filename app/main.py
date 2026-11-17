@@ -1,7 +1,8 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
 from app.infrastructure.adapters.into.http.users import router as users_router
 from app.infrastructure.adapters.into.http.roles import router as roles_router
 from app.infrastructure.adapters.into.http.companies import router as companies_router
@@ -20,6 +21,7 @@ from app.infrastructure.adapters.into.http.stock_alerts import router as alerts_
 from app.infrastructure.adapters.into.http.dashboard import router as dashboard_router
 from app.infrastructure.adapters.into.http.uploads import router as uploads_router
 from app.infrastructure.adapters.into.http.copilot import router as copilot_router
+from app.infrastructure.adapters.into.http.report_downloads import DownloadableReportStaticFiles
 from app.core.middleware.security_headers import SecurityHeadersMiddleware, NoCacheMiddleware
 
 app = FastAPI(title="TAOX API")
@@ -29,7 +31,6 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(NoCacheMiddleware)
 
 # CORS - use environment variable for production
-import os
 cors_origins = os.getenv("CORS_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
@@ -39,18 +40,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-import os
 # Ensure local static directory exists
 os.makedirs("static", exist_ok=True)
 
-# Mount /static/uploads FIRST to support Railway Persistent Volume (most specific path)
+# Mount the report path before its parent so report URLs stay unchanged and download as attachments.
 if os.path.exists("/static/uploads"):
     os.makedirs("/static/uploads/logos", exist_ok=True)
     os.makedirs("/static/uploads/fds", exist_ok=True)
+    os.makedirs("/static/uploads/reports", exist_ok=True)
+    app.mount(
+        "/static/uploads/reports",
+        DownloadableReportStaticFiles(directory="/static/uploads/reports"),
+        name="report_downloads",
+    )
     app.mount("/static/uploads", StaticFiles(directory="/static/uploads"), name="static_uploads")
 else:
     os.makedirs("static/uploads/logos", exist_ok=True)
     os.makedirs("static/uploads/fds", exist_ok=True)
+    os.makedirs("static/uploads/reports", exist_ok=True)
+    app.mount(
+        "/static/uploads/reports",
+        DownloadableReportStaticFiles(directory="static/uploads/reports"),
+        name="report_downloads",
+    )
     app.mount("/static/uploads", StaticFiles(directory="static/uploads"), name="static_uploads")
 
 # Mount /static AFTER /static/uploads (less specific path)
