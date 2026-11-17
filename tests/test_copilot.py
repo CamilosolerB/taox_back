@@ -532,6 +532,23 @@ def test_generate_report_creates_excel_file(tmp_path):
     assert (tmp_path / result["filename"]).exists()
 
 
+def test_static_generated_report_is_downloaded_as_attachment(tmp_path):
+    import asyncio
+    from app.infrastructure.adapters.into.http.report_downloads import DownloadableReportStaticFiles
+
+    filename = "inventario-1234abcd.pdf"
+    (tmp_path / filename).write_bytes(b"pdf content")
+    static_files = DownloadableReportStaticFiles(directory=str(tmp_path))
+
+    response = asyncio.run(
+        static_files.get_response(filename, {"method": "GET", "headers": []})
+    )
+
+    assert response.status_code == 200
+    assert response.headers["content-disposition"] == f'attachment; filename="{filename}"'
+    assert response.headers["cache-control"] == "private, no-store"
+
+
 def test_generate_report_rejects_unknown_type(tmp_path):
     use_case = _make_report_use_case(tmp_path)
 
